@@ -26,7 +26,14 @@ my $statInterval = 0.5;
 # whether or not to parse input into bins
 # (if data is pre-summarised and we're just presenting results)
 my $graphValues = "";
-my $colourisedOutput  = 0;
+
+# variables to support colourised output
+my $colourisedOutput = 0;
+my $regularColour = "";
+my $keyColour = "";
+my $countColour = "";
+my $percentColour = "";
+my $graphColour = "";
 
 # process input arguments -- any arguments that aren't known switches
 # are stuck onto @extraArgs - note that you can have one or two dashes
@@ -46,6 +53,15 @@ foreach my $arg (@ARGV) {
 	elsif ($arg =~ /^-+m(atch)*=(.+)$/)      { $matchRegexp = $2; }
 	elsif ($arg =~ /^-+v(erbose)*$/)         { $verbose = 1; }
 	else { push (@extraArgs, $arg); }
+}
+
+# variables to support colourised output
+if ($colourisedOutput) {
+	$regularColour = chr(27) . "[0m";
+	$keyColour = chr(27) . "[0m";
+	$countColour = chr(27) . "[32m";
+	$percentColour = chr(27) . "[35m";
+	$graphColour = chr(27) . "[34m";
 }
 
 # some useful substitutions for prettiness
@@ -159,7 +175,7 @@ for ($i = 0; $i < $height; $i++) {
 	# determine the percent of key frequency
 	my $percentile = $count / $totalValues * 100;
 	# graph axis labels, really
-	$preBarText->[$i] = sprintf ("%d (%3.02f%%)", $count, $percentile);
+	$preBarText->[$i] = sprintf ("%d %s(%3.02f%%)", $count, $percentColour, $percentile);
 	# determine the widest bar's width and longest key name for
 	# aligning the output
 	if (length ($preBarText->[$i]) > $maxPreBarLen) { $maxPreBarLen = length ($preBarText->[$i]); }
@@ -174,7 +190,6 @@ if ($verbose) {
 	print STDERR " tallied in histogram: $totalValues\n";
 	print STDERR "    histogram entries: $totalKeys\n";
 	print STDERR "              runtime: ${totalMillis}ms\n";;
-	print STDERR "\n";
 }
 
 # print a header with alignment from key names
@@ -182,28 +197,29 @@ print STDERR "Val";
 for ($j = 4; $j <= $maxKeyLen; $j++) { print STDERR " "; }
 print STDERR "|Ct (Pct)";
 for ($j = 8; $j <= $maxPreBarLen; $j++) { print STDERR " "; }
-print STDERR "Histogram\n";
+print STDERR "Histogram";
 
 # amount of other output reduces possible size of bar - alas
 my $maxBarWidth = $width - $maxPreBarLen - $maxKeyLen - 4;
 
 for ($i = 0; $i < $height; $i++) {
-	if ($colourisedOutput) { print chr(27) . "[31m"; }
 	print $keyText->[$i];
+	print $regularColour;
 	for ($j = length ($keyText->[$i]); $j < $maxKeyLen; $j++) { print " "; }
-	if ($colourisedOutput) { print chr(27) . "[0m"; }
 	print "|";
-	if ($colourisedOutput) { print chr(27) . "[32m"; }
+	print $countColour;
 	print $preBarText->[$i];
-	if ($colourisedOutput) { print chr(27) . "[34m"; }
 	for ($j = length ($preBarText->[$i]); $j <= $maxPreBarLen; $j++) { print " "; }
 	# print one too many bar characters so <1% gets a single bar character
+	print $graphColour;
 	for ($j = 0; $j <= int ($barWidth->[$i] * $maxBarWidth); $j++) { print $histogramChar; }
-	print "\n";
+	# we do these antics of printing $keyColour on the line before the key
+	# so that piping output to sort will work
+	print "$keyColour\n";
 }
 
 # put the terminal back into a normal-colour mode
-if ($colourisedOutput) { print chr(27) . "[0m"; }
+print $regularColour;
 
 exit 0;
 
