@@ -189,6 +189,7 @@ to be done.
  * Colour output may need configuration potential, especially for colour-blind.
  * Configuration file (~/.distributionrc) for default behaviours.
  * On large files it might be slow. Speed enhancements nice.
+ * Get script included in package managers.
 
 Note that porting to another language isn't a to-do. If you want it in Python, just write it and
 send it to me, and I'll include it in this repo. Perl is fairly common, but I'm not sure 100%

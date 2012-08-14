@@ -14,16 +14,25 @@ my $startTime = Time::HiRes::time() * 1000;
 # defaults - override with ~/.distributionrc some day
 my $width = 80;
 my $height = 25;
+# character for ease of eye to scan left/right/up/down
 my $histogramChar = "+";
 my $tokenize = 0;
+# by default, everything matches (nothing is stripped out)
 my $matchRegexp = ".";
+# status and summary statistics
 my $verbose = 0;
+# how often to give status if verbose
 my $statInterval = 0.5;
+# whether or not to parse input into bins
+# (if data is pre-summarised and we're just presenting results)
 my $graphValues = "";
 my $colourisedOutput  = 0;
 
 # process input arguments -- any arguments that aren't known switches
-# are stuck onto @extraArgs
+# are stuck onto @extraArgs - note that you can have one or two dashes
+# before the option, and only need the first character. also options
+# that take values and switches can be overloaded, so -c=o -c means
+# use the o character and colourise the output. this can be confusing.
 my @extraArgs;
 foreach my $arg (@ARGV) {
 	if ($arg =~ /^-+h(elp)*$/)               { doArgs(); exit 0; }
@@ -66,7 +75,8 @@ my $totalValues = 0;
 my $totalObjects = 0;
 
 if ($graphValues) {
-	# direct input of keys/values
+	# here is the case where we don't need to put the input into
+	# bins and tally - the data is pre-tallied for us
 	while ($inLine = <STDIN>) {
 		chomp ($inLine);
 		if ($graphValues eq 'vk') {
@@ -92,6 +102,7 @@ if ($graphValues) {
 	while ($inLine = <STDIN>) {
 		chomp($inLine);
 		if ($tokenize) {
+			# in this case we break the line into tokens and tally them
 			foreach my $lineToken (split (/$tokenize/, $inLine)) {
 				$totalObjects++;
 				if ($lineToken =~ /$matchRegexp/) {
@@ -100,6 +111,7 @@ if ($graphValues) {
 				}
 			}
 		} else {
+			# in this case the entire line is the token to be tallied
 			$totalObjects++;
 			if ($inLine =~ /$matchRegexp/) {
 				$valuesDict->{$inLine}++;
@@ -113,12 +125,15 @@ if ($graphValues) {
 	}
 	if ($verbose) { print STDERR " + Objects Processed: $totalObjects.   \n"; }
 }
+
+# the input may be empty. or we may have been too strict on the
+# matching regexp passed in. either way, we were left with nothing.
 if ($totalValues == 0) {
 	print STDERR "No input (or all input filtered)! No histogram for you.\n";
 	exit 255;
 }
 
-# get the keys ordered
+# get the keys ordered - we'll only print the most common keys
 my @sortedKeys = reverse sort { int($valuesDict->{$a}) <=> int($valuesDict->{$b}) } keys %{$valuesDict};
 
 # if there aren't height # of distinct values, use less
@@ -133,12 +148,20 @@ my $preBarText;
 my $barWidth;
 my $maxPreBarLen = 0;
 my $maxKeyLen = 0;
+# here is the complex part - read it carefully
 for ($i = 0; $i < $height; $i++) {
+	# print the i-most common key
 	$keyText->[$i] = $sortedKeys[$i];
+	# how many times this key occurred in the input
 	my $count = $valuesDict->{$sortedKeys[$i]};
+	# determine the bar width based on key occurence
 	$barWidth->[$i] = $count / $maxCount;
+	# determine the percent of key frequency
 	my $percentile = $count / $totalValues * 100;
+	# graph axis labels, really
 	$preBarText->[$i] = sprintf ("%d (%3.02f%%)", $count, $percentile);
+	# determine the widest bar's width and longest key name for
+	# aligning the output
 	if (length ($preBarText->[$i]) > $maxPreBarLen) { $maxPreBarLen = length ($preBarText->[$i]); }
 	if (length ($sortedKeys[$i]) > $maxKeyLen) { $maxKeyLen = length ($sortedKeys[$i]); }
 }
@@ -154,14 +177,14 @@ if ($verbose) {
 	print STDERR "\n";
 }
 
-# print a header
+# print a header with alignment from key names
 print STDERR "Val";
 for ($j = 4; $j <= $maxKeyLen; $j++) { print STDERR " "; }
 print STDERR "|Ct (Pct)";
 for ($j = 8; $j <= $maxPreBarLen; $j++) { print STDERR " "; }
 print STDERR "Histogram\n";
 
-# amount of other output reduces possible size of bar
+# amount of other output reduces possible size of bar - alas
 my $maxBarWidth = $width - $maxPreBarLen - $maxKeyLen - 4;
 
 for ($i = 0; $i < $height; $i++) {
