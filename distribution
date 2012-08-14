@@ -1,17 +1,17 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
-# Written by Tim Ellis - Copyright August 2012 - Released under GPLv2
+# - Written by Tim Ellis of Palomino 
+# - Copyright August 2012
+# - Released under GPLv2
 
+use warnings;
 use strict;
 use Time::HiRes qw( time );
 
 # for determining how long this program ran
 my $startTime = Time::HiRes::time() * 1000;
 
-# variables used over and over
-my @extraArgs;
-
-# defaults
+# defaults - override with ~/.distributionrc some day
 my $width = 80;
 my $height = 25;
 my $histogramChar = "+";
@@ -24,6 +24,7 @@ my $colourisedOutput  = 0;
 
 # process input arguments -- any arguments that aren't known switches
 # are stuck onto @extraArgs
+my @extraArgs;
 foreach my $arg (@ARGV) {
 	if ($arg =~ /^-+h(elp)*$/)               { doArgs(); exit 0; }
 	elsif ($arg =~ /^-+w(idth)*=(.+)$/)      { $width = $2; }
@@ -179,7 +180,7 @@ for ($i = 0; $i < $height; $i++) {
 }
 
 # put the terminal back into a normal-colour mode
-print chr(27) . "[0m";
+if ($colourisedOutput) { print chr(27) . "[0m"; }
 
 exit 0;
 

@@ -11,6 +11,9 @@ in the terminal, then use one of the scripts in this repository. At first, there
 be only one, the original written in Perl by Tim Ellis. But if others port it to Python,
 Ocaml, COBOL, or Brainfuck, then we'll include those versions here.
 
+I already feel the underlying tool has a little feature creep (the tokenizing and matching
+code), so this tool should be considered nearly feature-complete.
+
 Options
 =======
 
@@ -51,6 +54,13 @@ then only match words. The verbosity gives you some stats as it works and right 
 it prints the histogram.
 
 ```
+$ zcat /var/log/syslog*gz | awk '{print $5" "$6}' | head -5
+rsyslogd: [origin
+anacron[5657]: Job
+anacron[5657]: Can't
+anacron[5657]: Normal
+NetworkManager[1197]: SCPlugin-Ifupdown:
+
 $ zcat /var/log/syslog*gz \
     | awk '{print $5" "$6}' \
     | distribution --tokenize=word --match=word --height=10 --verbose --char=o
@@ -138,4 +148,49 @@ Val             |Ct (Pct)      Histogram
    2012-08-03 19|18353 (1.30%) ++++++++++++
    2012-08-03 22|18726 (1.32%) ++++++++++++
 ```
+
+The purpose of the tokenizing/matching is so that you don't have to learn other tools like
+sed or awk that do similar things. But then sometimes, it's just way less verbose to use the
+tool to do it. Say you want to look at all the URLs in your Apache logs. People will be doing
+GET /a/b/c /a/c/f q/r/s q/n/p so really A and Q are the most common. But you can just tokenize
+on / and call it a day. In this case, though, you'll note one file common to all URLs tends
+to show up, robots.txt, so you probably should preprocess the input.
+
+```
+$ zcat access.log*gz \
+        | awk '{print $7}' \
+        | distribution -t=/ -h=15
+Val            |Ct (Pct)      Histogram
+Art            |1839 (16.58%) +++++++++++++++++++++++++++++++++++++++++++++++++
+Rendered       |1596 (14.39%) ++++++++++++++++++++++++++++++++++++++++++
+Blender        |1499 (13.52%) ++++++++++++++++++++++++++++++++++++++++
+AznRigging     |760 (6.85%)   ++++++++++++++++++++
+Music          |457 (4.12%)   ++++++++++++
+Ringtones      |388 (3.50%)   +++++++++++
+CuteStance     |280 (2.52%)   ++++++++
+Traditional    |197 (1.78%)   ++++++
+Technology     |171 (1.54%)   +++++
+CreativeExhaust|134 (1.21%)   ++++
+Fractals       |127 (1.15%)   ++++
+robots.txt     |125 (1.13%)   ++++
+RingtoneEP1.mp3|125 (1.13%)   ++++
+Poetry         |108 (0.97%)   +++
+RingtoneEP2.mp3|95 (0.86%)    +++
+```
+
+To-Do List
+==========
+
+This script is 1.0 after only about a week of life. New features should be carefully considered
+and weighed against their likelihood of causing bugs. Still, there are some things that need
+to be done.
+
+ * No Time::HiRes Perl module? Don't die. Just don't do ms-level timings.
+ * Colour output may need configuration potential, especially for colour-blind.
+ * Configuration file (~/.distributionrc) for default behaviours.
+ * On large files it might be slow. Speed enhancements nice.
+
+Note that porting to another language isn't a to-do. If you want it in Python, just write it and
+send it to me, and I'll include it in this repo. Perl is fairly common, but I'm not sure 100%
+of systems out there have it. A C or C++ port would be most welcome.
 
