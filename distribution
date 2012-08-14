@@ -1,0 +1,239 @@
+#!/usr/bin/perl -w
+
+# Written by Tim Ellis - Copyright August 2012 - Released under GPLv2
+
+use strict;
+use Time::HiRes qw( time );
+
+# for determining how long this program ran
+my $startTime = Time::HiRes::time() * 1000;
+
+# variables used over and over
+my @extraArgs;
+
+# defaults
+my $width = 80;
+my $height = 25;
+my $histogramChar = "+";
+my $tokenize = 0;
+my $matchRegexp = ".";
+my $verbose = 0;
+my $statInterval = 0.5;
+my $graphValues = "";
+my $colourisedOutput  = 0;
+
+# process input arguments -- any arguments that aren't known switches
+# are stuck onto @extraArgs
+foreach my $arg (@ARGV) {
+	if ($arg =~ /^-+h(elp)*$/)               { doArgs(); exit 0; }
+	elsif ($arg =~ /^-+w(idth)*=(.+)$/)      { $width = $2; }
+	elsif ($arg =~ /^-+h(eight)*=(.+)$/)     { $height = $2; }
+	elsif ($arg =~ /^-+g(raph)*=(.+)$/)      { $graphValues = $2; }
+	elsif ($arg =~ /^-+g(raph)*$/)           { $graphValues = 'vk'; }
+	elsif ($arg =~ /^-+c(har)*=(.+)$/)       { $histogramChar = $2; }
+	elsif ($arg =~ /^-+c(olor)*$/)           { $colourisedOutput = 1; }
+	elsif ($arg =~ /^-+t(okenize)*=(.+)$/)   { $tokenize = $2; }
+	elsif ($arg =~ /^-+m(atch)*=(.+)$/)      { $matchRegexp = $2; }
+	elsif ($arg =~ /^-+v(erbose)*$/)         { $verbose = 1; }
+	else { push (@extraArgs, $arg); }
+}
+
+# some useful substitutions for prettiness
+if ($histogramChar eq "em") { $histogramChar = "—"; }
+if ($histogramChar eq "me") { $histogramChar = "⋯"; }
+if ($histogramChar eq "cp") { $histogramChar = "©"; }
+if ($histogramChar eq "di") { $histogramChar = "♦"; }
+if ($histogramChar eq "dt") { $histogramChar = "•"; }
+if ($histogramChar eq "st") { $histogramChar = "★"; }
+if ($histogramChar eq "sq") { $histogramChar = "□"; }
+if ($histogramChar eq "tf") { $histogramChar = "∴"; }
+if ($histogramChar eq "yy") { $histogramChar = "☯"; }
+if ($histogramChar eq "pc") { $histogramChar = "☮"; }
+if ($histogramChar eq "pr") { $histogramChar = "☠"; }
+
+# some useful regexp replacements
+if ($matchRegexp eq 'word') { $matchRegexp = '^[A-Z,a-z]+$'; }
+if ($matchRegexp eq 'num')  { $matchRegexp = '^\d+$'; }
+if ($tokenize eq 'word')    { $tokenize = '[^\w]'; }
+if ($tokenize eq 'white')   { $tokenize = '\s'; }
+
+# build the dict of input values
+my $inLine;
+my $nextStat = time() + $statInterval;
+my $valuesDict;
+my $totalValues = 0;
+my $totalObjects = 0;
+
+if ($graphValues) {
+	# direct input of keys/values
+	while ($inLine = <STDIN>) {
+		chomp ($inLine);
+		if ($graphValues eq 'vk') {
+			if ($inLine =~ /^(\d+)\s+(.+)$/) {
+				$valuesDict->{$2} = $1;
+				$totalValues += $1;
+				$totalObjects++;
+			} else {
+				print STDERR " E Input line malformed and discarded: $inLine\n";
+			}
+		} elsif ($graphValues eq 'kv') {
+			if ($inLine =~ /^(.+?)\s+(\d+)$/) {
+				$valuesDict->{$1} = $2;
+				$totalValues += $2;
+				$totalObjects++;
+			} else {
+				print STDERR " E Input line malformed and discarded: $inLine\n";
+			}
+		}
+	}
+} else {
+	# read in lines and build hash object from it
+	while ($inLine = <STDIN>) {
+		chomp($inLine);
+		if ($tokenize) {
+			foreach my $lineToken (split (/$tokenize/, $inLine)) {
+				$totalObjects++;
+				if ($lineToken =~ /$matchRegexp/) {
+					$valuesDict->{$lineToken}++;
+					$totalValues++;
+				}
+			}
+		} else {
+			$totalObjects++;
+			if ($inLine =~ /$matchRegexp/) {
+				$valuesDict->{$inLine}++;
+				$totalValues++;
+			}
+		}
+		if ($verbose && time() > $nextStat) {
+			print STDERR " + Objects Processed: $totalObjects...";
+			$nextStat = time() + $statInterval;
+		}
+	}
+	if ($verbose) { print STDERR " + Objects Processed: $totalObjects.   \n"; }
+}
+if ($totalValues == 0) {
+	print STDERR "No input (or all input filtered)! No histogram for you.\n";
+	exit 255;
+}
+
+# get the keys ordered
+my @sortedKeys = reverse sort { int($valuesDict->{$a}) <=> int($valuesDict->{$b}) } keys %{$valuesDict};
+
+# if there aren't height # of distinct values, use less
+my $totalKeys = scalar @sortedKeys;
+if ($totalKeys < $height) { $height = $totalKeys; }
+
+my $i;
+my $j;
+my $maxCount = $valuesDict->{$sortedKeys[0]};
+my $keyText;
+my $preBarText;
+my $barWidth;
+my $maxPreBarLen = 0;
+my $maxKeyLen = 0;
+for ($i = 0; $i < $height; $i++) {
+	$keyText->[$i] = $sortedKeys[$i];
+	my $count = $valuesDict->{$sortedKeys[$i]};
+	$barWidth->[$i] = $count / $maxCount;
+	my $percentile = $count / $totalValues * 100;
+	$preBarText->[$i] = sprintf ("%d (%3.02f%%)", $count, $percentile);
+	if (length ($preBarText->[$i]) > $maxPreBarLen) { $maxPreBarLen = length ($preBarText->[$i]); }
+	if (length ($sortedKeys[$i]) > $maxKeyLen) { $maxKeyLen = length ($sortedKeys[$i]); }
+}
+
+my $endTime = Time::HiRes::time() * 1000;
+my $totalMillis = sprintf ("%.2f", ($endTime - $startTime));
+
+if ($verbose) {
+	print STDERR "tokens/lines examined: $totalObjects\n";
+	print STDERR " tallied in histogram: $totalValues\n";
+	print STDERR "    histogram entries: $totalKeys\n";
+	print STDERR "              runtime: ${totalMillis}ms\n";;
+	print STDERR "\n";
+}
+
+# print a header
+print STDERR "Val";
+for ($j = 4; $j <= $maxKeyLen; $j++) { print STDERR " "; }
+print STDERR "|Ct (Pct)";
+for ($j = 8; $j <= $maxPreBarLen; $j++) { print STDERR " "; }
+print STDERR "Histogram\n";
+
+# amount of other output reduces possible size of bar
+my $maxBarWidth = $width - $maxPreBarLen - $maxKeyLen - 4;
+
+for ($i = 0; $i < $height; $i++) {
+	if ($colourisedOutput) { print chr(27) . "[31m"; }
+	print $keyText->[$i];
+	for ($j = length ($keyText->[$i]); $j < $maxKeyLen; $j++) { print " "; }
+	if ($colourisedOutput) { print chr(27) . "[0m"; }
+	print "|";
+	if ($colourisedOutput) { print chr(27) . "[32m"; }
+	print $preBarText->[$i];
+	if ($colourisedOutput) { print chr(27) . "[34m"; }
+	for ($j = length ($preBarText->[$i]); $j <= $maxPreBarLen; $j++) { print " "; }
+	# print one too many bar characters so <1% gets a single bar character
+	for ($j = 0; $j <= int ($barWidth->[$i] * $maxBarWidth); $j++) { print $histogramChar; }
+	print "\n";
+}
+
+# put the terminal back into a normal-colour mode
+print chr(27) . "[0m";
+
+exit 0;
+
+
+# ----------------------------------------------------------------- #
+#                           subroutines
+# ----------------------------------------------------------------- #
+
+# usage
+sub doArgs {
+	print "\n";
+	print "usage: <commandWithOutput> | $0\n";
+	print "         [--width=<width>]\n";
+	print "         [--height=<height>]\n";
+	print "         [--tokenize=<tokenChar>]\n";
+	print "         [--graph[=[kv|vk]]\n";
+	print "         [--char=<barChars>|<substitutionString>]\n";
+	print "         [--help][--verbose]\n";
+	print "  --char=C       character(s) to use for histogram character, some substitutions follow:\n";
+	print "        em       (—) Emdash\n";
+	print "        me       (⋯) Mid-Elipses\n";
+	print "        cp       (©) Copyright\n";
+	print "        di       (♦) Diamond\n";
+	print "        dt       (•) Dot\n";
+	print "        st       (★) Star\n";
+	print "        sq       (□) Square\n";
+	print "        tf       (∴) Triforce\n";
+	print "        yy       (☯) YinYang\n";
+	print "        pc       (☮) Peace\n";
+	print "        pr       (☠) Pirate\n";
+	print "  --graph        input is already key/value pairs. vk is default:\n";
+	print "        kv       input is ordered key then value\n";
+	print "        vk       input is ordered value then key\n";
+	print "  --height=N     height of histogram, headers non-inclusive. graphs this number of values.\n";
+	print "  --help         get help\n";
+	print "  --match=RE     only match lines (or tokens) that match this regexp, some substitutions follow:\n";
+	print "        word     ^[A-Z,a-z]+\$ - tokens/lines must be entirely alphabetic\n";
+	print "        num      ^\\d+\$        - tokens/lines must be entirely numeric\n";
+	print "  --tokenize=RE  split input on regexp RE and make histogram of all resulting tokens.\n";
+	print "        word     [^\\w] - split on non-word characters like colons, brackets, commas, etc\n";
+	print "        white    \\s    - split on whitespace\n";
+	print "  --width=N      width of the histogram report, N characters.\n";
+	print "  --verbose      be verbose\n";
+	print "\n";
+	print "You can use single-characters options, like so: -h=25 -w=20 -v. You must still include the =.\n";
+	print "\n";
+	print "Samples:\n";
+	print "  du -sb /etc/* | $0 --graph\n";
+	print "  du -sk /etc/* | awk '{print \$2\" \"\$1}' | $0 --graph=kv\n";
+	print "  zcat /var/log/syslog*gz | $0 --char=o --tokenize=white\n";
+	print "  zcat /var/log/syslog*gz | awk '{print \$5}'  | $0 --t=word --m-word --h=15 --c=/\n";
+	print "  zcat /var/log/syslog*gz | cut -c 1-9        | $0 --width=60 --height=10 --char=em\n";
+	print "  find /etc -type f       | cut -c 6-         | $0 --tokenize=/ --w=90 --h=35 --c=dt\n";
+	print "  cat /usr/share/dict/words | awk '{print length(\$1)}' | $0 --c=* --w=50 --h=10 | sort -n\n";
+	print "\n";
+}
+
