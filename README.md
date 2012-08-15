@@ -149,12 +149,14 @@ Val             |Ct (Pct)      Histogram
    2012-08-03 22|18726 (1.32%) ++++++++++++
 ```
 
-The purpose of the tokenizing/matching is so that you don't have to learn other tools like
-sed or awk that do similar things. But then sometimes, it's just way less verbose to use the
-tool to do it. Say you want to look at all the URLs in your Apache logs. People will be doing
-GET /a/b/c /a/c/f q/r/s q/n/p so really A and Q are the most common. But you can just tokenize
-on / and call it a day. In this case, though, you'll note one file common to all URLs tends
-to show up, robots.txt, so you probably should preprocess the input.
+Even if you know sed/awk/grep, the built-in tokenizing/matching can be less
+verbose. Say you want to look at all the URLs in your Apache logs. People will
+be doing GET /a/b/c /a/c/f q/r/s q/n/p. A and Q are the most common, so you can
+tokenize on / and the latter parts of the URL will be buried, statistically.
+
+In this case one file common to all URLs shows up: robots.txt. So by tokenizing
+and matching using the script, you can find unexpected common portions of the
+URL that don't show up in the prefix.
 
 ```
 $ zcat access.log*gz \
@@ -185,11 +187,10 @@ This script is 1.0 after only about a week of life. New features should be caref
 and weighed against their likelihood of causing bugs. Still, there are some things that need
 to be done.
 
- * No Time::HiRes Perl module? Don't die. Just don't do ms-level timings.
- * Colour output may need configuration potential, especially for colour-blind.
- * Configuration file (~/.distributionrc) for default behaviours.
- * On large files it might be slow. Speed enhancements nice.
+ * No Time::HiRes Perl module, don't die? Apparently Very Hard. Invalidated by next to-do.
  * Get script included in package managers.
+ * Configuration file (~/.distributionrc) for default behaviours and colours.
+ * On large files it might be slow. Speed enhancements nice.
 
 Porting
 =======
@@ -198,12 +199,14 @@ If you write a port, send me a pull request so I can include it in this repo.
 Perl is fairly common, but I'm not sure 100% of systems out there have it. A C
 or C++ port would be most welcome.
 
-Port requirements: from the user's point of view, it's the exact same script. They
-pass in the same options in the same way, and get the same output, byte-for-byte.
+Port requirements: from the user's point of view, it's the exact same script.
+They pass in the same options in the same way, and get the same output,
+byte-for-byte if possible. This means you'll need regexp support in your language
+of choice. Also a hash map structure makes the implementation simple.
 
-The only reason to port the script is if there's a need for someone to run this
-script on systems that don't have the script language supported. For now, that means
-non-Perl ports. I imagine, in order of nice-to-haveness:
+The only reason to port the script is if there's a need to run it on systems
+that don't have the script language supported. For now, that means non-Perl
+ports. I imagine, in order of nice-to-haveness:
 
  * C or C++
  * Python
@@ -213,5 +216,6 @@ non-Perl ports. I imagine, in order of nice-to-haveness:
  * Brainfuck
  * Java
 
-I'm just joking. Java would be nice to have.
+I'm just joking. Java would be really nice to have. Brainfuck I sort of want as a
+point of geek pride. Please don't make me learn it. Give me a port.
 

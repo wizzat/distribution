@@ -1,15 +1,38 @@
 #!/usr/bin/perl
 
-# - Written by Tim Ellis of Palomino 
-# - Copyright August 2012
-# - Released under GPLv2
+# distribution - creates histograms based on input
+#
+# Version 1.0
+#
+# Written by Tim Ellis of Palomino
+# Copyright (c) 2012 by Tim Ellis
+# Released under the terms of GNU GPLv2:
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, visit http://www.gnu.org/licenses/gpl-2.0.html in your
+# web browser.
+#
+# If you're still living in the 1800's, you can instead write to:
+#
+# Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
 
 use warnings;
 use strict;
 use Time::HiRes qw( time );
 
 # for determining how long this program ran
-my $startTime = Time::HiRes::time() * 1000;
+my $startTime = time() * 1000;
 
 # defaults - override with ~/.distributionrc some day
 my $width = 80;
@@ -182,7 +205,7 @@ for ($i = 0; $i < $height; $i++) {
 	if (length ($sortedKeys[$i]) > $maxKeyLen) { $maxKeyLen = length ($sortedKeys[$i]); }
 }
 
-my $endTime = Time::HiRes::time() * 1000;
+my $endTime = time() * 1000;
 my $totalMillis = sprintf ("%.2f", ($endTime - $startTime));
 
 if ($verbose) {
@@ -198,6 +221,10 @@ for ($j = 4; $j <= $maxKeyLen; $j++) { print STDERR " "; }
 print STDERR "|Ct (Pct)";
 for ($j = 8; $j <= $maxPreBarLen; $j++) { print STDERR " "; }
 print STDERR "Histogram";
+
+# for some reason this leads to an extra blank line if you sort
+# the colourised output
+print "$keyColour\n";
 
 # amount of other output reduces possible size of bar - alas
 my $maxBarWidth = $width - $maxPreBarLen - $maxKeyLen - 4;
