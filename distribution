@@ -29,6 +29,9 @@
 
 use warnings;
 use strict;
+
+# if your system is dying on this statement, it should be safe to simply comment
+# it out. your timings with --verbose will be very course.
 use Time::HiRes qw( time );
 
 # for determining how long this program ran
