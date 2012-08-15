@@ -191,7 +191,27 @@ to be done.
  * On large files it might be slow. Speed enhancements nice.
  * Get script included in package managers.
 
-Note that porting to another language isn't a to-do. If you want it in Python, just write it and
-send it to me, and I'll include it in this repo. Perl is fairly common, but I'm not sure 100%
-of systems out there have it. A C or C++ port would be most welcome.
+Porting
+=======
+
+If you write a port, send me a pull request so I can include it in this repo.
+Perl is fairly common, but I'm not sure 100% of systems out there have it. A C
+or C++ port would be most welcome.
+
+Port requirements: from the user's point of view, it's the exact same script. They
+pass in the same options in the same way, and get the same output, byte-for-byte.
+
+The only reason to port the script is if there's a need for someone to run this
+script on systems that don't have the script language supported. For now, that means
+non-Perl ports. I imagine, in order of nice-to-haveness:
+
+ * C or C++
+ * Python
+ * Ruby
+ * Lisp
+ * Ocaml
+ * Brainfuck
+ * Java
+
+I'm just joking. Java would be nice to have.
 
