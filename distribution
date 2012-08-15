@@ -171,7 +171,12 @@ if ($graphValues) {
 # the input may be empty. or we may have been too strict on the
 # matching regexp passed in. either way, we were left with nothing.
 if ($totalValues == 0) {
-	print STDERR "No input (or all input filtered)! No histogram for you.\n";
+	if ($totalObjects > 0) {
+		print STDERR "All input filtered! ";
+	} else {
+		print STDERR "No input! ";
+	}
+	print STDERR "No histogram for you.\n";
 	exit 255;
 }
 
