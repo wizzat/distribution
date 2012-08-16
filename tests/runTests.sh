@@ -17,6 +17,9 @@ echo -n "4. "
 cat input03.txt | $distribution -height=8 -width=60 -t=/ -c --c=cp > output004.txt 2> output104.txt
 echo -n "5. "
 cat input03.txt | $distribution -c=di --w=48 -tokenize=word -match=num -verbose 2> output105.txt | sort -n > output005.txt
+echo -n "6. "
+for i in `seq 1 17 3141592` ; do echo $[ $i ^ ($i + 9) ]; done | cut -c 2-6 | $distribution -width=124 -height=29 --color -c=^ --v > output006.txt 2> output106.txt
+
 
 # get onto the newline
 echo ""
@@ -28,6 +31,7 @@ Expected output:
  = 7d9c9a9e5a18a699e19f1185de7fa899  output003.txt
  = edccb59cedfb6332801f435c259a6183  output004.txt
  = e4b81d7b876398127773e5a1b0309c24  output005.txt
+ = c78d6a223724d5c923b8cbf4ec1eb15f  output006.txt
 
 Actual output:"
 
