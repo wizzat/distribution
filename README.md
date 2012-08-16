@@ -6,13 +6,14 @@ Short, simple, direct scripts for creating ASCII graphical histograms in the ter
 Purpose
 =======
 
-If you desire a script to generate a graphical histogram from the terminal, directly
-in the terminal, then use one of the scripts in this repository. At first, there will
-be only one, the original written in Perl by Tim Ellis. But if others port it to Python,
-Ocaml, COBOL, or Brainfuck, then we'll include those versions here.
+If you desire a script to generate a graphical histogram from the terminal,
+directly in the terminal, then use one of the scripts in this repository. At
+first, there will be only one, the original written in Perl by Tim Ellis. But
+if others port it to Python, Ocaml, COBOL, or Brainfuck, then we'll include
+those versions here.
 
-I already feel the underlying tool has a little feature creep (the tokenizing and matching
-code), so this tool should be considered nearly feature-complete.
+I already feel the underlying tool has a little feature creep (the tokenizing
+and matching code), so this tool should be considered nearly feature-complete.
 
 Options
 =======
@@ -49,9 +50,9 @@ Options
 Examples
 ========
 
-You can grab out parts of your syslog ask the script to tokenize on non-word delimiters,
-then only match words. The verbosity gives you some stats as it works and right before
-it prints the histogram.
+You can grab out parts of your syslog ask the script to tokenize on non-word
+delimiters, then only match words. The verbosity gives you some stats as it
+works and right before it prints the histogram.
 
 ```
 $ zcat /var/log/syslog*gz | awk '{print $5" "$6}' | head -5
@@ -83,11 +84,11 @@ Trying        |667 (1.82%)    ooo
 dnsmasq       |562 (1.53%)    ooo
 ```
 
-You can use very short versions of the options in case you don't like typing a lot. The
-default character is "+" because it creates a type of grid system which makes it easy for
-the eye to trace right/left or up/down. If the input is already just a list of values
-and keys, you can pass in the "--graph" (-g) option to graph the data without going through
-any parsing phase.
+You can use very short versions of the options in case you don't like typing a
+lot. The default character is "+" because it creates a type of grid system
+which makes it easy for the eye to trace right/left or up/down. If the input is
+already just a list of values and keys, you can pass in the "--graph" (-g)
+option to graph the data without going through any parsing phase.
 
 ```
 $ sudo du -sb /etc/* | distribution -w=90 -h=15 -g
@@ -109,9 +110,9 @@ Val                   |Ct (Pct)         Histogram
 /etc/java-7-openjdk   |100414 (0.58%)   +
 ```
 
-The output is separated between STDOUT and STDERR so you can sort the resulting histogram
-by values. This is useful for time series or other cases where the keys you're searching on
-are in some natural order.
+The output is separated between STDOUT and STDERR so you can sort the resulting
+histogram by values. This is useful for time series or other cases where the
+keys you're searching on are in some natural order.
 
 ```
 $ cat NotServingRegionException-DateHour.txt | distribution -v | sort -n
@@ -154,9 +155,8 @@ verbose. Say you want to look at all the URLs in your Apache logs. People will
 be doing GET /a/b/c /a/c/f q/r/s q/n/p. A and Q are the most common, so you can
 tokenize on / and the latter parts of the URL will be buried, statistically.
 
-In this case one file common to all URLs shows up: robots.txt. So by tokenizing
-and matching using the script, you can find unexpected common portions of the
-URL that don't show up in the prefix.
+By tokenizing and matching using the script, you may also find unexpected
+common portions of the URL that don't show up in the prefix.
 
 ```
 $ zcat access.log*gz \
@@ -183,11 +183,11 @@ RingtoneEP2.mp3|95 (0.86%)    +++
 To-Do List
 ==========
 
-This script is 1.0 after only about a week of life. New features should be carefully considered
-and weighed against their likelihood of causing bugs. Still, there are some things that need
-to be done.
+This script is 1.0 after only about a week of life. New features should be
+carefully considered and weighed against their likelihood of causing bugs.
+Still, there are some things that need to be done.
 
- * No Time::HiRes Perl module, don't die? Apparently Very Hard. Invalidated by next to-do.
+ * No Time::HiRes Perl module? Don't die. Much harder than it should be. Invalidated by next to-do.
  * Get script included in package managers.
  * Configuration file (~/.distributionrc) for default behaviours and colours.
  * On large files it might be slow. Speed enhancements nice.
@@ -201,8 +201,8 @@ or C++ port would be most welcome.
 
 Port requirements: from the user's point of view, it's the exact same script.
 They pass in the same options in the same way, and get the same output,
-byte-for-byte if possible. This means you'll need regexp support in your language
-of choice. Also a hash map structure makes the implementation simple.
+byte-for-byte if possible. This means you'll need regexp support in your
+language of choice. Also a hash map structure makes the implementation simple.
 
 The only reason to port the script is if there's a need to run it on systems
 that don't have the script language supported. For now, that means non-Perl
@@ -216,6 +216,6 @@ ports. I imagine, in order of nice-to-haveness:
  * Brainfuck
  * Java
 
-I'm just joking. Java would be really nice to have. Brainfuck I sort of want as a
-point of geek pride. Please don't make me learn it. Give me a port.
+I'm just joking. Java would be really nice to have. Brainfuck I sort of want as
+a point of geek pride. Please don't make me learn it. Give me a port.
 
