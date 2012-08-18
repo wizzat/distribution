@@ -122,7 +122,7 @@ if ($graphValues) {
 	while ($inLine = <STDIN>) {
 		chomp ($inLine);
 		if ($graphValues eq 'vk') {
-			if ($inLine =~ /^(\d+)\s+(.+)$/) {
+			if ($inLine =~ /^\s*(\d+)\s+(.+)$/) {
 				$valuesDict->{$2} = $1;
 				$totalValues += $1;
 				$totalObjects++;
