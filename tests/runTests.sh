@@ -26,12 +26,12 @@ echo ""
 
 echo "
 Expected output:
- = dfb7cbc75b73e9974d97fb68adce69f2  output001.txt
- = 5738adc4876551615ec54e639e3c36f9  output002.txt
- = 7d9c9a9e5a18a699e19f1185de7fa899  output003.txt
- = edccb59cedfb6332801f435c259a6183  output004.txt
- = e4b81d7b876398127773e5a1b0309c24  output005.txt
- = c78d6a223724d5c923b8cbf4ec1eb15f  output006.txt
+ = 95e10b0882551490d9d07e45b6f28874  output001.txt
+ = 2ae3621106a77cff3080ba5a240cdd69  output002.txt
+ = 8228e18cb80d28cc5a983a43a1cae3d8  output003.txt
+ = b29e23a97fdf88b556fdff175da8ce7e  output004.txt
+ = 42446cf6f4a0f414ed27d323155ccbf7  output005.txt
+ = bb2ad9bba293f3d4d938e709fa1a10e2  output006.txt
 
 Actual output:"
 
