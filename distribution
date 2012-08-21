@@ -57,8 +57,8 @@ my $graphValues = "";
 my $colourisedOutput = 0;
 my $regularColour = "";
 my $keyColour = "";
-my $countColour = "";
-my $percentColour = "";
+my $ctColour = "";
+my $pctColour = "";
 my $graphColour = "";
 
 # process input arguments -- any arguments that aren't known switches
@@ -84,9 +84,9 @@ foreach my $arg (@ARGV) {
 # variables to support colourised output
 if ($colourisedOutput) {
 	$regularColour = chr(27) . "[0m";
-	$keyColour = chr(27) . "[0m";
-	$countColour = chr(27) . "[32m";
-	$percentColour = chr(27) . "[35m";
+	$keyColour = chr(27) . "[30m";
+	$ctColour = chr(27) . "[32m";
+	$pctColour = chr(27) . "[35m";
 	$graphColour = chr(27) . "[34m";
 }
 
@@ -191,13 +191,15 @@ my $i;
 my $j;
 my $maxCount = $valuesDict->{$sortedKeys[0]};
 my $keyText;
-my $preBarText;
+my $ctText;
+my $pctText;
+my $preBarLen;
 my $barWidth;
 my $maxPreBarLen = 0;
 my $maxKeyLen = 0;
 # here is the complex part - read it carefully
 for ($i = 0; $i < $height; $i++) {
-	# print the i-most common key
+	# print the i'th most-common key
 	$keyText->[$i] = $sortedKeys[$i];
 	# how many times this key occurred in the input
 	my $count = $valuesDict->{$sortedKeys[$i]};
@@ -206,10 +208,12 @@ for ($i = 0; $i < $height; $i++) {
 	# determine the percent of key frequency
 	my $percentile = $count / $totalValues * 100;
 	# graph axis labels, really
-	$preBarText->[$i] = sprintf ("%d %s(%3.02f%%)", $count, $percentColour, $percentile);
-	# determine the widest bar's width and longest key name for
+	$ctText->[$i] = sprintf ("%d", $count);
+	$pctText->[$i] = sprintf ("(%3.02f%%)", $percentile);
+	$preBarLen = length ($ctText->[$i]) + length ($pctText->[$i]);
+	# determine the longest key name and longest count/percent text for
 	# aligning the output
-	if (length ($preBarText->[$i]) > $maxPreBarLen) { $maxPreBarLen = length ($preBarText->[$i]); }
+	if ($preBarLen > $maxPreBarLen) { $maxPreBarLen = $preBarLen; }
 	if (length ($sortedKeys[$i]) > $maxKeyLen) { $maxKeyLen = length ($sortedKeys[$i]); }
 }
 
@@ -227,7 +231,7 @@ if ($verbose) {
 print STDERR "Val";
 for ($j = 4; $j <= $maxKeyLen; $j++) { print STDERR " "; }
 print STDERR "|Ct (Pct)";
-for ($j = 8; $j <= $maxPreBarLen; $j++) { print STDERR " "; }
+for ($j = 7; $j <= $maxPreBarLen; $j++) { print STDERR " "; }
 print STDERR "Histogram";
 
 # for some reason this leads to an extra blank line if you sort
@@ -242,9 +246,11 @@ for ($i = 0; $i < $height; $i++) {
 	print $regularColour;
 	for ($j = length ($keyText->[$i]); $j < $maxKeyLen; $j++) { print " "; }
 	print "|";
-	print $countColour;
-	print $preBarText->[$i];
-	for ($j = length ($preBarText->[$i]); $j <= $maxPreBarLen; $j++) { print " "; }
+	print $ctColour;
+	print $ctText->[$i] . " ";
+	print $pctColour;
+	print $pctText->[$i];
+	for ($j = length ($ctText->[$i]) + length ($pctText->[$i]); $j <= $maxPreBarLen; $j++) { print " "; }
 	# print one too many bar characters so <1% gets a single bar character
 	print $graphColour;
 	for ($j = 0; $j <= int ($barWidth->[$i] * $maxBarWidth); $j++) { print $histogramChar; }
