@@ -61,6 +61,7 @@ anacron[5657]: Job
 anacron[5657]: Can't
 anacron[5657]: Normal
 NetworkManager[1197]: SCPlugin-Ifupdown:
+__________________
 
 $ zcat /var/log/syslog*gz \
     | awk '{print $5" "$6}' \
@@ -82,6 +83,43 @@ avahi         |853 (2.32%)    oooo
 dhclient      |736 (2.00%)    ooo
 Trying        |667 (1.82%)    ooo
 dnsmasq       |562 (1.53%)    ooo
+```
+
+You can start thinking of normal commands in new ways. For example, you can take
+your "ps ax" output, get just the command portion, and do a word-analysis on it.
+You might find some words are rather interesting. In this case, it appears Chrome
+is doing some sort of A/B testing and their commandline exposes that.
+
+```
+$ ps axww \
+    | cut -c 28- \
+    | distribution --tokenize=word --match=word --char='|' --width=90
+Val                     |Ct (Pct)    Histogram
+usr                     |100 (6.17%) |||||||||||||||||||||||||||||||||||||||||||||||||||||
+lib                     |73 (4.51%)  ||||||||||||||||||||||||||||||||||||||
+browser                 |38 (2.35%)  ||||||||||||||||||||
+chromium                |38 (2.35%)  ||||||||||||||||||||
+P                       |32 (1.98%)  |||||||||||||||||
+daemon                  |31 (1.91%)  |||||||||||||||||
+sbin                    |26 (1.60%)  ||||||||||||||
+gnome                   |23 (1.42%)  ||||||||||||
+bin                     |22 (1.36%)  ||||||||||||
+kworker                 |21 (1.30%)  |||||||||||
+type                    |19 (1.17%)  ||||||||||
+gvfs                    |17 (1.05%)  |||||||||
+no                      |17 (1.05%)  |||||||||
+en                      |16 (0.99%)  |||||||||
+indicator               |15 (0.93%)  ||||||||
+channel                 |14 (0.86%)  ||||||||
+bash                    |14 (0.86%)  ||||||||
+US                      |14 (0.86%)  ||||||||
+lang                    |14 (0.86%)  ||||||||
+force                   |12 (0.74%)  |||||||
+pluto                   |12 (0.74%)  |||||||
+ProxyConnectionImpact   |12 (0.74%)  |||||||
+HiddenExperimentB       |12 (0.74%)  |||||||
+ConnectBackupJobsEnabled|12 (0.74%)  |||||||
+session                 |12 (0.74%)  |||||||
 ```
 
 You can use very short versions of the options in case you don't like typing a
