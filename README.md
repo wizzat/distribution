@@ -1,7 +1,8 @@
 distribution
 ============
 
-Short, simple, direct scripts for creating ASCII graphical histograms in the terminal.
+Short, simple, direct scripts for creating ASCII graphical histograms in the
+terminal.
 
 Purpose
 =======
@@ -11,9 +12,6 @@ directly in the terminal, then use one of the scripts in this repository. At
 first, there will be only one, the original written in Perl by Tim Ellis. But
 if others port it to Python, Ocaml, COBOL, or Brainfuck, then we'll include
 those versions here.
-
-I already feel the underlying tool has a little feature creep (the tokenizing
-and matching code), so this tool should be considered nearly feature-complete.
 
 Options
 =======
@@ -153,7 +151,9 @@ histogram by values. This is useful for time series or other cases where the
 keys you're searching on are in some natural order.
 
 ```
-$ cat NotServingRegionException-DateHour.txt | distribution -v | sort -n
+$ cat NotServingRegionException-DateHour.txt \
+    | distribution -v \
+    | sort -n
  + Objects Processed: 1414196.   
 tokens/lines examined: 1414196
  tallied in histogram: 1414196
@@ -186,6 +186,29 @@ Val             |Ct (Pct)      Histogram
    2012-08-03 18|19514 (1.38%) ++++++++++++
    2012-08-03 19|18353 (1.30%) ++++++++++++
    2012-08-03 22|18726 (1.32%) ++++++++++++
+__________________
+
+$ cat /usr/share/dict/words \
+    | awk '{print length($1)}' \
+    | distribution -c=: -w=90 -h=16 \
+    | sort -n
+Val|Ct (Pct)       Histogram
+2 |182 (0.18%)    :
+3 |845 (0.85%)    ::::
+4 |3346 (3.37%)   ::::::::::::::::
+5 |6788 (6.84%)   :::::::::::::::::::::::::::::::
+6 |11278 (11.37%) ::::::::::::::::::::::::::::::::::::::::::::::::::::
+7 |14787 (14.91%) :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+8 |15674 (15.81%) ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+9 |14262 (14.38%) :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+10|11546 (11.64%) :::::::::::::::::::::::::::::::::::::::::::::::::::::
+11|8415 (8.49%)   :::::::::::::::::::::::::::::::::::::::
+12|5508 (5.55%)   :::::::::::::::::::::::::
+13|3236 (3.26%)   :::::::::::::::
+14|1679 (1.69%)   ::::::::
+15|893 (0.90%)    :::::
+16|382 (0.39%)    ::
+17|176 (0.18%)    :
 ```
 
 Even if you know sed/awk/grep, the built-in tokenizing/matching can be less
@@ -223,7 +246,9 @@ To-Do List
 
 This script is 1.0 after only about a week of life. New features should be
 carefully considered and weighed against their likelihood of causing bugs.
-Still, there are some things that need to be done.
+That is to say, new features are unlikely to be added, as the existing
+functionality already arguably is a superset of what's necessary.  Still, there
+are some things that need to be done.
 
  * No Time::HiRes Perl module? Don't die. Much harder than it should be. Invalidated by next to-do.
  * Get script included in package managers.
@@ -233,27 +258,27 @@ Still, there are some things that need to be done.
 Porting
 =======
 
+Perl is fairly common, but I'm not sure 100% of systems out there have it. A
+Python and C/C++ port would be most welcome.
+
 If you write a port, send me a pull request so I can include it in this repo.
-Perl is fairly common, but I'm not sure 100% of systems out there have it. A C
-or C++ port would be most welcome.
 
 Port requirements: from the user's point of view, it's the exact same script.
 They pass in the same options in the same way, and get the same output,
-byte-for-byte if possible. This means you'll need regexp support in your
-language of choice. Also a hash map structure makes the implementation simple.
+byte-for-byte if possible. This means you'll need (Perl) regexp support in your
+language of choice. Also a hash map structure makes the implementation simple,
+but more-efficient methods are welcome.
 
-The only reason to port the script is if there's a need to run it on systems
-that don't have the script language supported. For now, that means non-Perl
-ports. I imagine, in order of nice-to-haveness:
+I imagine, in order of nice-to-haveness:
 
  * C or C++
  * Python
+ * Java
  * Ruby
  * Lisp
  * Ocaml
  * Brainfuck
- * Java
 
-I'm just joking. Java would be really nice to have. Brainfuck I sort of want as
-a point of geek pride. Please don't make me learn it. Give me a port.
+Brainfuck I want as a point of geek pride. Please don't make me learn it. Give
+me a port!
 
