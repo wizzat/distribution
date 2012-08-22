@@ -17,32 +17,39 @@ Options
 =======
 
 ```
---char=C       character(s) to use for histogram character, some substitutions follow:
-      em       (—) Emdash
-      me       (⋯) Mid-Elipses
-      cp       (©) Copyright
-      di       (♦) Diamond
-      dt       (•) Dot
-      st       (★) Star
-      sq       (□) Square
-      tf       (∴) Triforce
-      yy       (☯) YinYang
-      pc       (☮) Peace
-      pr       (☠) Pirate
---color        colourise the output
---graph        input is already key/value pairs. vk is default:
-      kv       input is ordered key then value
-      vk       input is ordered value then key
---height=N     height of histogram, headers non-inclusive. graphs this number of values
---help         get help
---match=RE     only match lines (or tokens) that match this regexp, some substitutions follow:
-      word     ^[A-Z,a-z]+$ - tokens/lines must be entirely alphabetic
-      num      ^\d+$        - tokens/lines must be entirely numeric
---tokenize=RE  split input on regexp RE and make histogram of all resulting tokens
-      word     [^\w] - split on non-word characters like colons, brackets, commas, etc
-      white    \s    - split on whitespace
---width=N      width of the histogram report, N characters
---verbose      be verbose
+  --char=C       character(s) to use for histogram character, some substitutions follow:
+        bl       (Ξ) Building
+        bx       (ߛ) Box
+        cp       (©) Copyright
+        di       (♦) Diamond
+        dt       (•) Dot
+        em       (—) Emdash
+        me       (⋯) Mid-Elipses
+        pc       (☮) Peace
+        pr       (☠) Pirate
+        st       (★) Star
+        sq       (□) Square
+        tf       (∴) Triforce
+        yy       (☯) YinYang
+  --color        colourise the output
+  --graph        input is already key/value pairs. vk is default:
+        kv       input is ordered key then value
+        vk       input is ordered value then key
+  --height=N     height of histogram, headers non-inclusive, overrides --size
+  --help         get help
+  --match=RE     only match lines (or tokens) that match this regexp, some substitutions follow:
+        word     ^[A-Z,a-z]+$ - tokens/lines must be entirely alphabetic
+        num      ^\d+$        - tokens/lines must be entirely numeric
+  --size         size of histogram, can abbreviate to single character, overridden by --width/--height
+        small    40x10
+        medium   80x20
+        large    120x30
+        full     terminal width x terminal height (approximately)
+  --tokenize=RE  split input on regexp RE and make histogram of all resulting tokens
+        word     [^\w] - split on non-word characters like colons, brackets, commas, etc
+        white    \s    - split on whitespace
+  --width=N      width of the histogram report, N characters, overrides --size
+  --verbose      be verbose
 ```
 
 Examples
@@ -91,7 +98,7 @@ is doing some sort of A/B testing and their commandline exposes that.
 ```
 $ ps axww \
     | cut -c 28- \
-    | distribution --tokenize=word --match=word --char='|' --width=90
+    | distribution --tokenize=word --match=word --char='|' --width=90 --height=25
 Val                     |Ct (Pct)    Histogram
 usr                     |100 (6.17%) |||||||||||||||||||||||||||||||||||||||||||||||||||||
 lib                     |73 (4.51%)  ||||||||||||||||||||||||||||||||||||||

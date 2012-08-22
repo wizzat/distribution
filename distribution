@@ -37,9 +37,13 @@ use Time::HiRes qw( time );
 # for determining how long this program ran
 my $startTime = time() * 1000;
 
-# defaults - override with ~/.distributionrc some day
+# defaults - override with ~/.distributionrc some day - will be overwritten by
+# commandline options later
+my $size = '';
 my $width = 80;
-my $height = 25;
+my $height = 15;
+my $widthArg = 0;
+my $heightArg = 0;
 # character for ease of eye to scan left/right/up/down
 my $histogramChar = "+";
 my $tokenize = 0;
@@ -49,8 +53,8 @@ my $matchRegexp = ".";
 my $verbose = 0;
 # how often to give status if verbose
 my $statInterval = 0.5;
-# whether or not to parse input into bins
-# (if data is pre-summarised and we're just presenting results)
+# whether or not to parse input into bins (if data is pre-summarised and we're
+# just presenting results)
 my $graphValues = "";
 
 # variables to support colourised output
@@ -61,20 +65,21 @@ my $ctColour = "";
 my $pctColour = "";
 my $graphColour = "";
 
-# process input arguments -- any arguments that aren't known switches
-# are stuck onto @extraArgs - note that you can have one or two dashes
-# before the option, and only need the first character. also options
-# that take values and switches can be overloaded, so -c=o -c means
-# use the o character and colourise the output. this can be confusing.
+# process input arguments -- any arguments that aren't known switches are stuck
+# onto @extraArgs - note that you can have one or two dashes before the option,
+# and only need the first character. also options that take values and switches
+# can be overloaded, so -c=o -c means use the o character and colourise the
+# output. this can be confusing.
 my @extraArgs;
 foreach my $arg (@ARGV) {
 	if ($arg =~ /^-+h(elp)*$/)               { doArgs(); exit 0; }
-	elsif ($arg =~ /^-+w(idth)*=(.+)$/)      { $width = $2; }
-	elsif ($arg =~ /^-+h(eight)*=(.+)$/)     { $height = $2; }
+	elsif ($arg =~ /^-+w(idth)*=(.+)$/)      { $widthArg = $2; }
+	elsif ($arg =~ /^-+h(eight)*=(.+)$/)     { $heightArg = $2; }
 	elsif ($arg =~ /^-+g(raph)*=(.+)$/)      { $graphValues = $2; }
 	elsif ($arg =~ /^-+g(raph)*$/)           { $graphValues = 'vk'; }
 	elsif ($arg =~ /^-+c(har)*=(.+)$/)       { $histogramChar = $2; }
 	elsif ($arg =~ /^-+c(olor)*$/)           { $colourisedOutput = 1; }
+	elsif ($arg =~ /^-+s(ize)*=(.+)$/)       { $size = $2; }
 	elsif ($arg =~ /^-+t(okenize)*=(.+)$/)   { $tokenize = $2; }
 	elsif ($arg =~ /^-+m(atch)*=(.+)$/)      { $matchRegexp = $2; }
 	elsif ($arg =~ /^-+v(erbose)*$/)         { $verbose = 1; }
@@ -84,13 +89,15 @@ foreach my $arg (@ARGV) {
 # variables to support colourised output
 if ($colourisedOutput) {
 	$regularColour = chr(27) . "[0m";
-	$keyColour = chr(27) . "[30m";
+	$keyColour = chr(27) . "[0m";
 	$ctColour = chr(27) . "[32m";
 	$pctColour = chr(27) . "[35m";
 	$graphColour = chr(27) . "[34m";
 }
 
 # some useful substitutions for prettiness
+if ($histogramChar eq "bl") { $histogramChar = "Ξ"; }
+if ($histogramChar eq "bx") { $histogramChar = "ߛ"; }
 if ($histogramChar eq "em") { $histogramChar = "—"; }
 if ($histogramChar eq "me") { $histogramChar = "⋯"; }
 if ($histogramChar eq "cp") { $histogramChar = "©"; }
@@ -108,6 +115,29 @@ if ($matchRegexp eq 'word') { $matchRegexp = '^[A-Z,a-z]+$'; }
 if ($matchRegexp eq 'num')  { $matchRegexp = '^\d+$'; }
 if ($tokenize eq 'word')    { $tokenize = '[^\w]'; }
 if ($tokenize eq 'white')   { $tokenize = '\s'; }
+
+# set the size of the histogram
+if ($size =~ /^f/) {
+	$width = int (`tput cols` * 0.99);
+	if ($width < 80) { $width = 80; }
+	$height = int (`tput lines` - 3);
+	if ($verbose) { $height -= 5; }
+	if ($height < 25) { $height = 25; }
+} elsif ($size =~ /^s/) {
+	$width = 60;
+	$height = 10;
+} elsif ($size =~ /^m/) {
+	$width = 90;
+	$height = 20;
+} elsif ($size =~ /^l/) {
+	$width = 120;
+	$height = 30;
+}
+
+# if they passed in --width or --height, they probably meant it moreso than
+# defaults or the --size parameter
+if ($widthArg) { $width = $widthArg; }
+if ($heightArg) { $height = $heightArg; }
 
 # build the dict of input values
 my $inLine;
@@ -273,38 +303,44 @@ exit 0;
 sub doArgs {
 	print "\n";
 	print "usage: <commandWithOutput> | $0\n";
-	print "         [--width=<width>]\n";
-	print "         [--height=<height>]\n";
+	print "         [--size={sm|med|lg|full} | --width=<width> --height=<height>]\n";
 	print "         [--color]\n";
 	print "         [--tokenize=<tokenChar>]\n";
 	print "         [--graph[=[kv|vk]]\n";
 	print "         [--char=<barChars>|<substitutionString>]\n";
 	print "         [--help][--verbose]\n";
 	print "  --char=C       character(s) to use for histogram character, some substitutions follow:\n";
-	print "        em       (—) Emdash\n";
-	print "        me       (⋯) Mid-Elipses\n";
+        print "        bl       (Ξ) Building\n";
+        print "        bx       (ߛ) Box\n";
 	print "        cp       (©) Copyright\n";
 	print "        di       (♦) Diamond\n";
 	print "        dt       (•) Dot\n";
+	print "        em       (—) Emdash\n";
+	print "        me       (⋯) Mid-Elipses\n";
+	print "        pc       (☮) Peace\n";
+	print "        pr       (☠) Pirate\n";
 	print "        st       (★) Star\n";
 	print "        sq       (□) Square\n";
 	print "        tf       (∴) Triforce\n";
 	print "        yy       (☯) YinYang\n";
-	print "        pc       (☮) Peace\n";
-	print "        pr       (☠) Pirate\n";
 	print "  --color        colourise the output\n";
 	print "  --graph        input is already key/value pairs. vk is default:\n";
 	print "        kv       input is ordered key then value\n";
 	print "        vk       input is ordered value then key\n";
-	print "  --height=N     height of histogram, headers non-inclusive. graphs this number of values\n";
+	print "  --height=N     height of histogram, headers non-inclusive, overrides --size\n";
 	print "  --help         get help\n";
 	print "  --match=RE     only match lines (or tokens) that match this regexp, some substitutions follow:\n";
 	print "        word     ^[A-Z,a-z]+\$ - tokens/lines must be entirely alphabetic\n";
 	print "        num      ^\\d+\$        - tokens/lines must be entirely numeric\n";
+	print "  --size         size of histogram, can abbreviate to single character, overridden by --width/--height\n";
+	print "        small    40x10\n";
+	print "        medium   80x20\n";
+	print "        large    120x30\n";
+	print "        full     terminal width x terminal height (approximately)\n";
 	print "  --tokenize=RE  split input on regexp RE and make histogram of all resulting tokens\n";
 	print "        word     [^\\w] - split on non-word characters like colons, brackets, commas, etc\n";
 	print "        white    \\s    - split on whitespace\n";
-	print "  --width=N      width of the histogram report, N characters\n";
+	print "  --width=N      width of the histogram report, N characters, overrides --size\n";
 	print "  --verbose      be verbose\n";
 	print "\n";
 	print "You can use single-characters options, like so: -h=25 -w=20 -v. You must still include the =\n";
