@@ -18,19 +18,15 @@ Options
 
 ```
   --char=C       character(s) to use for histogram character, some substitutions follow:
+        ba       (▬) Bar
         bl       (Ξ) Building
-        bx       (ߛ) Box
-        cp       (©) Copyright
-        di       (♦) Diamond
-        dt       (•) Dot
         em       (—) Emdash
         me       (⋯) Mid-Elipses
-        pc       (☮) Peace
-        pr       (☠) Pirate
-        st       (★) Star
+        di       (♦) Diamond
+        dt       (•) Dot
         sq       (□) Square
-        tf       (∴) Triforce
-        yy       (☯) YinYang
+        pb       Use 1/8-width unicode partial blocks to simulate 8x actual terminal width
+        pc       Use 1/2-width unicode partial circles to simulate 2x actual terminal width
   --color        colourise the output
   --graph        input is already key/value pairs. vk is default:
         kv       input is ordered key then value
@@ -49,7 +45,6 @@ Options
         word     [^\w] - split on non-word characters like colons, brackets, commas, etc
         white    \s    - split on whitespace
   --width=N      width of the histogram report, N characters, overrides --size
-  --verbose      be verbose
 ```
 
 Examples
