@@ -4,17 +4,29 @@ distribution
 Short, simple, direct scripts for creating ASCII graphical histograms in the
 terminal.
 
+
 Purpose
 =======
 
-If you desire a script to generate a graphical histogram from the terminal,
-directly in the terminal, then use one of the scripts in this repository. At
-first, there will be only one, the original written in Perl by Tim Ellis. But
-if others port it to Python, Ocaml, COBOL, or Brainfuck, then we'll include
-those versions here.
+These scripts are to generate a graphical histogram from the terminal, directly
+in the terminal. At first, there will be only one script, the original written
+in Perl by Tim Ellis. But if others port it to Python, Ocaml, COBOL, or
+Brainfuck, then we'll include those versions here.
 
-If you simply want to graph a series of numbers in the terminal, there is another
-simple project to achieve this: https://github.com/holman/spark.
+There are a few typical use cases:
+
+   0. A stream of text, tokenize it, tally up the interesting tokens, and graph
+      the result.
+   1. A very large list of things, already one-per-line, tally up the things
+      and graph them for me.
+   2. A list of tokens + tallies, one-per-line, simply present a visual
+      representation of the tallies for me so I can visualise the data.
+   3. A list of tallies without corresponding tokens. Just present a visual
+      representation of the list.
+
+This project takes care of (the somewhat more complicated) first three cases.
+For the last one, there is another project: https://github.com/holman/spark.
+
 
 Options
 =======
@@ -49,6 +61,7 @@ Options
         white    \s    - split on whitespace
   --width=N      width of the histogram report, N characters, overrides --size
 ```
+
 
 Examples
 ========
@@ -246,6 +259,7 @@ Poetry         |108 (0.97%)   +++
 RingtoneEP2.mp3|95 (0.86%)    +++
 ```
 
+
 To-Do List
 ==========
 
@@ -259,6 +273,7 @@ are some things that need to be done.
  * Get script included in package managers.
  * Configuration file (~/.distributionrc) for default behaviours and colours.
  * On large files it might be slow. Speed enhancements nice.
+
 
 Porting
 =======
