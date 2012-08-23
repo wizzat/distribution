@@ -14,7 +14,7 @@ if others port it to Python, Ocaml, COBOL, or Brainfuck, then we'll include
 those versions here.
 
 If you simply want to graph a series of numbers in the terminal, there is another
-simple project to achieve this: https://github.com/holman/spark/blob/master/spark.
+simple project to achieve this: https://github.com/holman/spark.
 
 Options
 =======
