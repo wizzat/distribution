@@ -95,20 +95,31 @@ if ($colourisedOutput) {
 	$graphColour = chr(27) . "[34m";
 }
 
+# for advanced graphing
+my $verticalBlocks =   ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]; # for future?
+my $partialBlocks =    ["▏", "▎", "▍", "▌", "▋", "▊", "▉", "█"]; # char=pb
+my $partialCircles =   ["◐", "●"]; # char=pc
+
 # some useful substitutions for prettiness
+if ($histogramChar eq "ba") { $histogramChar = "▬"; }
 if ($histogramChar eq "bl") { $histogramChar = "Ξ"; }
-if ($histogramChar eq "bx") { $histogramChar = "ߛ"; }
 if ($histogramChar eq "em") { $histogramChar = "—"; }
 if ($histogramChar eq "me") { $histogramChar = "⋯"; }
-if ($histogramChar eq "cp") { $histogramChar = "©"; }
 if ($histogramChar eq "di") { $histogramChar = "♦"; }
 if ($histogramChar eq "dt") { $histogramChar = "•"; }
-if ($histogramChar eq "st") { $histogramChar = "★"; }
 if ($histogramChar eq "sq") { $histogramChar = "□"; }
-if ($histogramChar eq "tf") { $histogramChar = "∴"; }
-if ($histogramChar eq "yy") { $histogramChar = "☯"; }
-if ($histogramChar eq "pc") { $histogramChar = "☮"; }
-if ($histogramChar eq "pr") { $histogramChar = "☠"; }
+
+# sub-full character width graphing systems
+my $charWidth = 1;
+my $graphChars = undef;
+if ($histogramChar eq "pb") {
+	$charWidth = 0.125;
+	$graphChars = $partialBlocks;
+}
+if ($histogramChar eq "pc") {
+	$charWidth = 0.5;
+	$graphChars = $partialCircles;
+}
 
 # some useful regexp replacements
 if ($matchRegexp eq 'word') { $matchRegexp = '^[A-Z,a-z]+$'; }
@@ -281,9 +292,27 @@ for ($i = 0; $i < $height; $i++) {
 	print $pctColour;
 	print $pctText->[$i];
 	for ($j = length ($ctText->[$i]) + length ($pctText->[$i]); $j <= $maxPreBarLen; $j++) { print " "; }
-	# print one too many bar characters so <1% gets a single bar character
 	print $graphColour;
-	for ($j = 0; $j <= int ($barWidth->[$i] * $maxBarWidth); $j++) { print $histogramChar; }
+	for ($j = 0; $j < int ($barWidth->[$i] * $maxBarWidth); $j++) {
+		if ($charWidth < 1) {
+			print $graphChars->[scalar @$graphChars - 1];
+		} else {
+			print $histogramChar;
+		}
+	}
+	# print one too many bar characters so <1% gets a single bar character
+	my $remainder = ($barWidth->[$i] * $maxBarWidth) - int ($barWidth->[$i] * $maxBarWidth);
+	my $whichChar = int ($remainder / $charWidth);
+	if ($charWidth < 1) {
+		if ($barWidth->[$i] * $maxBarWidth > $charWidth) {
+			print $graphChars->[$whichChar];
+		} else {
+			print $graphChars->[0];
+		}
+	} else {
+		print $histogramChar;
+	}
+
 	# we do these antics of printing $keyColour on the line before the key
 	# so that piping output to sort will work
 	print "$keyColour\n";
@@ -310,19 +339,15 @@ sub doArgs {
 	print "         [--char=<barChars>|<substitutionString>]\n";
 	print "         [--help][--verbose]\n";
 	print "  --char=C       character(s) to use for histogram character, some substitutions follow:\n";
-        print "        bl       (Ξ) Building\n";
-        print "        bx       (ߛ) Box\n";
-	print "        cp       (©) Copyright\n";
-	print "        di       (♦) Diamond\n";
-	print "        dt       (•) Dot\n";
+	print "        ba       (▬) Bar\n";
+	print "        bl       (Ξ) Building\n";
 	print "        em       (—) Emdash\n";
 	print "        me       (⋯) Mid-Elipses\n";
-	print "        pc       (☮) Peace\n";
-	print "        pr       (☠) Pirate\n";
-	print "        st       (★) Star\n";
+	print "        di       (♦) Diamond\n";
+	print "        dt       (•) Dot\n";
 	print "        sq       (□) Square\n";
-	print "        tf       (∴) Triforce\n";
-	print "        yy       (☯) YinYang\n";
+	print "        pb       Use 1/8-width unicode partial blocks to simulate 8x actual terminal width\n";
+	print "        pc       Use 1/2-width unicode partial circles to simulate 2x actual terminal width\n";
 	print "  --color        colourise the output\n";
 	print "  --graph        input is already key/value pairs. vk is default:\n";
 	print "        kv       input is ordered key then value\n";
