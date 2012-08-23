@@ -98,7 +98,8 @@ if ($colourisedOutput) {
 # for advanced graphing
 my $verticalBlocks =   ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]; # for future?
 my $partialBlocks =    ["▏", "▎", "▍", "▌", "▋", "▊", "▉", "█"]; # char=pb
-my $partialCircles =   ["◐", "●"]; # char=pc
+my $partialCircles =   ["◖", "●"]; # char=pc
+my $partialLines =     ["╸", "╾", "━"]; # char=hl
 
 # some useful substitutions for prettiness
 if ($histogramChar eq "ba") { $histogramChar = "▬"; }
@@ -120,6 +121,10 @@ if ($histogramChar eq "pc") {
 	$charWidth = 0.5;
 	$graphChars = $partialCircles;
 }
+if ($histogramChar eq "hl") {
+	$charWidth = 0.3334;
+	$graphChars = $partialLines;
+}
 
 # some useful regexp replacements
 if ($matchRegexp eq 'word') { $matchRegexp = '^[A-Z,a-z]+$'; }
@@ -138,11 +143,11 @@ if ($size =~ /^f/) {
 	$width = 60;
 	$height = 10;
 } elsif ($size =~ /^m/) {
-	$width = 90;
+	$width = 100;
 	$height = 20;
 } elsif ($size =~ /^l/) {
-	$width = 120;
-	$height = 30;
+	$width = 140;
+	$height = 35;
 }
 
 # if they passed in --width or --height, they probably meant it moreso than
@@ -202,11 +207,11 @@ if ($graphValues) {
 			}
 		}
 		if ($verbose && time() > $nextStat) {
-			print STDERR " + Objects Processed: $totalObjects..." . chr(13);
+			print STDERR "    Objects Processed: $totalObjects..." . chr(13);
 			$nextStat = time() + $statInterval;
 		}
 	}
-	if ($verbose) { print STDERR " + Objects Processed: $totalObjects.   \n"; }
+	if ($verbose) { print STDERR "    Objects Processed: $totalObjects    \n"; }
 }
 
 # the input may be empty. or we may have been too strict on the
@@ -346,6 +351,7 @@ sub doArgs {
 	print "        di       (♦) Diamond\n";
 	print "        dt       (•) Dot\n";
 	print "        sq       (□) Square\n";
+	print "        hl       Use 1/3-width unicode partial lines to simulate 3x actual terminal width\n";
 	print "        pb       Use 1/8-width unicode partial blocks to simulate 8x actual terminal width\n";
 	print "        pc       Use 1/2-width unicode partial circles to simulate 2x actual terminal width\n";
 	print "  --color        colourise the output\n";
