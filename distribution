@@ -202,7 +202,7 @@ if ($graphValues) {
 			}
 		}
 		if ($verbose && time() > $nextStat) {
-			print STDERR " + Objects Processed: $totalObjects...";
+			print STDERR " + Objects Processed: $totalObjects..." . chr(13);
 			$nextStat = time() + $statInterval;
 		}
 	}
