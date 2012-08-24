@@ -40,6 +40,7 @@ Options
         di       (♦) Diamond
         dt       (•) Dot
         sq       (□) Square
+        hl       Use 1/3-width unicode partial lines to simulate 3x actual terminal width
         pb       Use 1/8-width unicode partial blocks to simulate 8x actual terminal width
         pc       Use 1/2-width unicode partial circles to simulate 2x actual terminal width
   --color        colourise the output
@@ -60,6 +61,7 @@ Options
         word     [^\w] - split on non-word characters like colons, brackets, commas, etc
         white    \s    - split on whitespace
   --width=N      width of the histogram report, N characters, overrides --size
+  --verbose      be verbose
 ```
 
 

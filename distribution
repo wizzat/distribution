@@ -302,7 +302,11 @@ for ($i = 0; $i < $height; $i++) {
 		if ($charWidth < 1) {
 			print $graphChars->[scalar @$graphChars - 1];
 		} else {
-			print $histogramChar;
+			if (length ($histogramChar) > 1) {
+				print substr ($histogramChar, 0, 1);
+			} else {
+				print $histogramChar;
+			}
 		}
 	}
 	# print one too many bar characters so <1% gets a single bar character
@@ -315,7 +319,11 @@ for ($i = 0; $i < $height; $i++) {
 			print $graphChars->[0];
 		}
 	} else {
-		print $histogramChar;
+		if (length ($histogramChar) > 1) {
+			print substr ($histogramChar, -1, 1);
+		} else {
+			print $histogramChar;
+		}
 	}
 
 	# we do these antics of printing $keyColour on the line before the key
