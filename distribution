@@ -46,6 +46,7 @@ my $widthArg = 0;
 my $heightArg = 0;
 # character for ease of eye to scan left/right/up/down
 my $histogramChar = "+";
+my $unicode = 0;
 my $tokenize = 0;
 # by default, everything matches (nothing is stripped out)
 my $matchRegexp = ".";
@@ -102,13 +103,13 @@ my $partialCircles =   ["◖", "●"]; # char=pc
 my $partialLines =     ["╸", "╾", "━"]; # char=hl
 
 # some useful substitutions for prettiness
-if ($histogramChar eq "ba") { $histogramChar = "▬"; }
-if ($histogramChar eq "bl") { $histogramChar = "Ξ"; }
-if ($histogramChar eq "em") { $histogramChar = "—"; }
-if ($histogramChar eq "me") { $histogramChar = "⋯"; }
-if ($histogramChar eq "di") { $histogramChar = "♦"; }
-if ($histogramChar eq "dt") { $histogramChar = "•"; }
-if ($histogramChar eq "sq") { $histogramChar = "□"; }
+if ($histogramChar eq "ba") { $unicode = 1; $histogramChar = "▬"; }
+if ($histogramChar eq "bl") { $unicode = 1; $histogramChar = "Ξ"; }
+if ($histogramChar eq "em") { $unicode = 1; $histogramChar = "—"; }
+if ($histogramChar eq "me") { $unicode = 1; $histogramChar = "⋯"; }
+if ($histogramChar eq "di") { $unicode = 1; $histogramChar = "♦"; }
+if ($histogramChar eq "dt") { $unicode = 1; $histogramChar = "•"; }
+if ($histogramChar eq "sq") { $unicode = 1; $histogramChar = "□"; }
 
 # sub-full character width graphing systems
 my $charWidth = 1;
@@ -288,9 +289,12 @@ print "$keyColour\n";
 my $maxBarWidth = $width - $maxPreBarLen - $maxKeyLen - 4;
 
 for ($i = 0; $i < $height; $i++) {
+	# first the key that we aggregated
 	print $keyText->[$i];
 	print $regularColour;
+	# alignment
 	for ($j = length ($keyText->[$i]); $j < $maxKeyLen; $j++) { print " "; }
+	# separater between keys and count/pct
 	print "|";
 	print $ctColour;
 	print $ctText->[$i] . " ";
@@ -300,9 +304,13 @@ for ($i = 0; $i < $height; $i++) {
 	print $graphColour;
 	for ($j = 0; $j < int ($barWidth->[$i] * $maxBarWidth); $j++) {
 		if ($charWidth < 1) {
+			# print out maximum-width character (always last in array)
 			print $graphChars->[scalar @$graphChars - 1];
 		} else {
-			if (length ($histogramChar) > 1) {
+			# we're printing regular non-unicode characters
+			if (length ($histogramChar) > 1 && !$unicode) {
+				# but still we have >1 byte! so print initial byte
+				# for all but the last character (printed outside loop)
 				print substr ($histogramChar, 0, 1);
 			} else {
 				print $histogramChar;
@@ -313,13 +321,20 @@ for ($i = 0; $i < $height; $i++) {
 	my $remainder = ($barWidth->[$i] * $maxBarWidth) - int ($barWidth->[$i] * $maxBarWidth);
 	my $whichChar = int ($remainder / $charWidth);
 	if ($charWidth < 1) {
+		# if we have partial-width characters, get higher resolution
 		if ($barWidth->[$i] * $maxBarWidth > $charWidth) {
+			# we have more than charWidth remainder, so print out a
+			# remainder portion
 			print $graphChars->[$whichChar];
 		} else {
+			# we had minimum remainder, so print minimum-width
+			# character just print the minimum-width portion
 			print $graphChars->[0];
 		}
 	} else {
-		if (length ($histogramChar) > 1) {
+		# we're printing regular non-unicode characters
+		if (length ($histogramChar) > 1 && !$unicode) {
+			# but still we have >1 byte! so print final byte of input string
 			print substr ($histogramChar, -1, 1);
 		} else {
 			print $histogramChar;
