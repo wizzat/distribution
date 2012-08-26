@@ -111,6 +111,9 @@ if ($histogramChar eq "di") { $unicode = 1; $histogramChar = "♦"; }
 if ($histogramChar eq "dt") { $unicode = 1; $histogramChar = "•"; }
 if ($histogramChar eq "sq") { $unicode = 1; $histogramChar = "□"; }
 
+# high-bit set means we're not in ASCIIland anymore
+if (ord (substr ($histogramChar, 0, 1)) >= 128) { $unicode = 1; }
+
 # sub-full character width graphing systems
 my $charWidth = 1;
 my $graphChars = undef;
