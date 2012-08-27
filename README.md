@@ -59,7 +59,7 @@ Options
   --match=RE     only match lines (or tokens) that match this regexp, some substitutions follow:
         word     ^[A-Z,a-z]+$ - tokens/lines must be entirely alphabetic
         num      ^\d+$        - tokens/lines must be entirely numeric
-  --pallette=P   comma-separated list of ANSI colour values for portions of the output
+  --palette=P    comma-separated list of ANSI colour values for portions of the output
                  in this order: regular, key, count, percent, graph. implies --color.
   --rcfile=F     use this rcfile instead of $HOME/.distributionrc - must be first argument!
   --size=S       size of histogram, can abbreviate to single character, overridden by --width/--height

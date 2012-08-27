@@ -21,7 +21,7 @@
 #--char=░
 #--char=▞
 
-# ANSI colour pallette, in this order:
+# ANSI colour palette, in this order:
 # regular, key, count, percent, graph
-#--pallette=0,0,32,35,34
+#--palette=0,0,32,35,34
 
