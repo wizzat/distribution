@@ -1,24 +1,27 @@
-# put this file here: $HOME/.distributionrc
+# put this file at $HOME/.distributionrc or specify it as --rcfile=<location>
+# AS THE FIRST ARGUMENT to the script
 #
-# options for the distribution program can be specified one per line
-# exactly as you'd specify them on the commandline. options in this
-# file are overridden by the commandline options passed
+# options for the distribution program can be specified one per line exactly as
+# you'd specify them on the commandline. options in this file are overridden by
+# the commandline options passed
+#
+# do not try to specify the same option twice in this file, you'll probably be
+# surprised by the reverse-order of overrides
 
 # obvious options?
 --color
---size=sm
+--size=med
 
 # cool unicode partial-width characters
 --char=pb
+# other interesting-but-unusual graph bar choices
+#--char=◵
+#--char=■
+#--char=◣
+#--char=░
+#--char=▞
 
-## # ANSI colour pallette, in this order:
-## # regular, key, count, percent, graph
-## --pallette=0,0,32,35,34
-
-## # other interesting-but-unusual graph bar choices
-## --char=◵
-## --char=■
-## --char=◣
-## --char=░
-## --char=▞
+# ANSI colour pallette, in this order:
+# regular, key, count, percent, graph
+#--pallette=0,0,32,35,34
 

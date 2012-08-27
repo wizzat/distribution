@@ -37,8 +37,7 @@ use Time::HiRes qw( time );
 # for determining how long this program ran
 my $startTime = time() * 1000;
 
-# defaults - override with ~/.distributionrc some day - will be overwritten by
-# commandline options later
+# defaults - overridden by distributionrc - overridden by commandline options
 my $size = '';
 my $width = 80;
 my $height = 15;
@@ -67,12 +66,19 @@ my $ctColour = "";
 my $pctColour = "";
 my $graphColour = "";
 
-# we'll re-use inLine later for reading the input
+# we'll re-use inLine at various times for reading files
 my $inLine;
-# read in rcfile - it'll just be args
-if (open (IFILE, "< " . $ENV{"HOME"} . "/.distributionrc")) {
+
+# if they want an rcfile, must be first arg
+my $rcFile = $ENV{"HOME"} . "/.distributionrc";
+if ($ARGV[0] =~ /^-+r(cfile)*=(.+)$/) { $rcFile = $2; }
+
+# read in rcfile if it exists - it'll just be args
+if (open (IFILE, "< $rcFile")) {
 	while ($inLine = <IFILE>) {
 		chomp ($inLine);
+		# must put args from rcfile at start so options passed on the
+		# commandline will override them
 		unshift (@ARGV, $inLine);
 	}
 }
@@ -103,7 +109,7 @@ foreach my $arg (@ARGV) {
 if ($colourisedOutput) {
 	# input should be comma-separated list of numerals
 	my @cp = split (',', $colourPallette);
-	# add ANSI colour commands around the values
+	# add ANSI colour commands around the values - final looks like ^[[32m
 	for (my $i=0; $i < scalar @cp; $i++) {
 		$cp[$i] = chr(27) . '[' . $cp[$i] . 'm';
 	}
@@ -118,12 +124,12 @@ my $partialLines =     ["╸", "╾", "━"]; # char=hl
 
 # some useful substitutions for prettiness
 if ($histogramChar eq "ba") { $unicode = 1; $histogramChar = "▬"; }
-if ($histogramChar eq "bl") { $unicode = 1; $histogramChar = "Ξ"; }
-if ($histogramChar eq "em") { $unicode = 1; $histogramChar = "—"; }
-if ($histogramChar eq "me") { $unicode = 1; $histogramChar = "⋯"; }
-if ($histogramChar eq "di") { $unicode = 1; $histogramChar = "♦"; }
-if ($histogramChar eq "dt") { $unicode = 1; $histogramChar = "•"; }
-if ($histogramChar eq "sq") { $unicode = 1; $histogramChar = "□"; }
+elsif ($histogramChar eq "bl") { $unicode = 1; $histogramChar = "Ξ"; }
+elsif ($histogramChar eq "em") { $unicode = 1; $histogramChar = "—"; }
+elsif ($histogramChar eq "me") { $unicode = 1; $histogramChar = "⋯"; }
+elsif ($histogramChar eq "di") { $unicode = 1; $histogramChar = "♦"; }
+elsif ($histogramChar eq "dt") { $unicode = 1; $histogramChar = "•"; }
+elsif ($histogramChar eq "sq") { $unicode = 1; $histogramChar = "□"; }
 
 # high-bit set means we're not in ASCIIland anymore
 if (ord (substr ($histogramChar, 0, 1)) >= 128) { $unicode = 1; }
@@ -134,21 +140,19 @@ my $graphChars = undef;
 if ($histogramChar eq "pb") {
 	$charWidth = 0.125;
 	$graphChars = $partialBlocks;
-}
-if ($histogramChar eq "pc") {
+} elsif ($histogramChar eq "pc") {
 	$charWidth = 0.5;
 	$graphChars = $partialCircles;
-}
-if ($histogramChar eq "hl") {
+} elsif ($histogramChar eq "hl") {
 	$charWidth = 0.3334;
 	$graphChars = $partialLines;
 }
 
 # some useful regexp replacements
 if ($matchRegexp eq 'word') { $matchRegexp = '^[A-Z,a-z]+$'; }
-if ($matchRegexp eq 'num')  { $matchRegexp = '^\d+$'; }
+elsif ($matchRegexp eq 'num')  { $matchRegexp = '^\d+$'; }
 if ($tokenize eq 'word')    { $tokenize = '[^\w]'; }
-if ($tokenize eq 'white')   { $tokenize = '\s'; }
+elsif ($tokenize eq 'white')   { $tokenize = '\s'; }
 
 # set the size of the histogram
 if ($size =~ /^f/) {
@@ -376,12 +380,13 @@ exit 0;
 sub doArgs {
 	print "\n";
 	print "usage: <commandWithOutput> | $0\n";
+	print "         [--rcfile=<rcFile>]\n";
 	print "         [--size={sm|med|lg|full} | --width=<width> --height=<height>]\n";
-	print "         [--color]\n";
+	print "         [--color] [--pallette=r,k,c,p,g]\n";
 	print "         [--tokenize=<tokenChar>]\n";
 	print "         [--graph[=[kv|vk]]\n";
 	print "         [--char=<barChars>|<substitutionString>]\n";
-	print "         [--help][--verbose]\n";
+	print "         [--help] [--verbose]\n";
 	print "  --char=C       character(s) to use for histogram character, some substitutions follow:\n";
 	print "        ba       (▬) Bar\n";
 	print "        bl       (Ξ) Building\n";
@@ -394,7 +399,7 @@ sub doArgs {
 	print "        pb       Use 1/8-width unicode partial blocks to simulate 8x actual terminal width\n";
 	print "        pc       Use 1/2-width unicode partial circles to simulate 2x actual terminal width\n";
 	print "  --color        colourise the output\n";
-	print "  --graph        input is already key/value pairs. vk is default:\n";
+	print "  --graph[=G]    input is already key/value pairs. vk is default:\n";
 	print "        kv       input is ordered key then value\n";
 	print "        vk       input is ordered value then key\n";
 	print "  --height=N     height of histogram, headers non-inclusive, overrides --size\n";
@@ -402,9 +407,10 @@ sub doArgs {
 	print "  --match=RE     only match lines (or tokens) that match this regexp, some substitutions follow:\n";
 	print "        word     ^[A-Z,a-z]+\$ - tokens/lines must be entirely alphabetic\n";
 	print "        num      ^\\d+\$        - tokens/lines must be entirely numeric\n";
-	print "  --pallette     comma-separated list of ANSI colour values for portions of the output\n";
-	print "                 in this order: regular, key, count, percent, graph\n";
-	print "  --size         size of histogram, can abbreviate to single character, overridden by --width/--height\n";
+	print "  --pallette=P   comma-separated list of ANSI colour values for portions of the output\n";
+	print "                 in this order: regular, key, count, percent, graph. implies --color.\n";
+	print "  --rcfile=F     use this rcfile instead of \$HOME/.distributionrc - must be first argument!\n";
+	print "  --size=S       size of histogram, can abbreviate to single character, overridden by --width/--height\n";
 	print "        small    40x10\n";
 	print "        medium   80x20\n";
 	print "        large    120x30\n";
