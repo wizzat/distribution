@@ -1,8 +1,8 @@
 distribution
 ============
 
-Short, simple, direct scripts for creating ASCII graphical histograms in the
-terminal.
+Short, simple, direct scripts for creating character-based histograms in a
+command terminal.
 
 
 Purpose
@@ -13,19 +13,26 @@ in the terminal. At first, there will be only one script, the original written
 in Perl by Tim Ellis. But if others port it to Python, Ocaml, COBOL, or
 Brainfuck, then we'll include those versions here.
 
-There are a few typical use cases:
+There are a few typical use cases for graphs in a terminal:
 
-   0. A stream of text, tokenize it, tally up the interesting tokens, and graph
+   0. A stream of ASCII bytes, tokenize it, tally the matching tokens, and graph
       the result.
-   1. A very large list of things, already one-per-line, tally up the things
-      and graph them for me.
-   2. A list of tokens + tallies, one-per-line, simply present a visual
-      representation of the tallies for me so I can visualise the data.
-   3. A list of tallies without corresponding tokens. Just present a visual
-      representation of the list.
+   1. An already-tokenised input, one-per-line, tally and graph them.
+   2. A list of tallies + tokens, one-per-line. Create a graph with labels.
+   3. A list of tallies only. Create a graph without labels.
 
-This project takes care of (the somewhat more complicated) first three cases.
-For the last one, there is another project: https://github.com/holman/spark.
+This project takes care of the (somewhat more complicated) first three cases.
+For the final case, there is another project: https://github.com/holman/spark.
+
+
+Features
+========
+
+   0. Configurable colourised output.
+   1. rcfile for your own preferred default commandline options.
+   2. Full Perl tokenising and regexp matching.
+   3. Partial-width Unicode characters for high-resolution charts.
+   4. Configurable chart sizes including "fill up my whole screen."
 
 
 Options
@@ -44,7 +51,7 @@ Options
         pb       Use 1/8-width unicode partial blocks to simulate 8x actual terminal width
         pc       Use 1/2-width unicode partial circles to simulate 2x actual terminal width
   --color        colourise the output
-  --graph        input is already key/value pairs. vk is default:
+  --graph[=G]    input is already key/value pairs. vk is default:
         kv       input is ordered key then value
         vk       input is ordered value then key
   --height=N     height of histogram, headers non-inclusive, overrides --size
@@ -52,9 +59,10 @@ Options
   --match=RE     only match lines (or tokens) that match this regexp, some substitutions follow:
         word     ^[A-Z,a-z]+$ - tokens/lines must be entirely alphabetic
         num      ^\d+$        - tokens/lines must be entirely numeric
-  --pallette     comma-separated list of ANSI colour values for portions of the output
-                 in this order: regular, key, count, percent, graph
-  --size         size of histogram, can abbreviate to single character, overridden by --width/--height
+  --pallette=P   comma-separated list of ANSI colour values for portions of the output
+                 in this order: regular, key, count, percent, graph. implies --color.
+  --rcfile=F     use this rcfile instead of $HOME/.distributionrc - must be first argument!
+  --size=S       size of histogram, can abbreviate to single character, overridden by --width/--height
         small    40x10
         medium   80x20
         large    120x30
