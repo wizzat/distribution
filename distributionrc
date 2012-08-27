@@ -1,0 +1,24 @@
+# put this file here: $HOME/.distributionrc
+#
+# options for the distribution program can be specified one per line
+# exactly as you'd specify them on the commandline. options in this
+# file are overridden by the commandline options passed
+
+# obvious options?
+--color
+--size=sm
+
+# cool unicode partial-width characters
+--char=pb
+
+## # ANSI colour pallette, in this order:
+## # regular, key, count, percent, graph
+## --pallette=0,0,32,35,34
+
+## # other interesting-but-unusual graph bar choices
+## --char=◵
+## --char=■
+## --char=◣
+## --char=░
+## --char=▞
+

@@ -52,6 +52,8 @@ Options
   --match=RE     only match lines (or tokens) that match this regexp, some substitutions follow:
         word     ^[A-Z,a-z]+$ - tokens/lines must be entirely alphabetic
         num      ^\d+$        - tokens/lines must be entirely numeric
+  --pallette     comma-separated list of ANSI colour values for portions of the output
+                 in this order: regular, key, count, percent, graph
   --size         size of histogram, can abbreviate to single character, overridden by --width/--height
         small    40x10
         medium   80x20
@@ -273,7 +275,6 @@ are some things that need to be done.
 
  * No Time::HiRes Perl module? Don't die. Much harder than it should be. Invalidated by next to-do.
  * Get script included in package managers.
- * Configuration file (~/.distributionrc) for default behaviours and colours.
  * On large files it might be slow. Speed enhancements nice.
 
 

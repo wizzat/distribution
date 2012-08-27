@@ -60,11 +60,22 @@ my $graphValues = "";
 
 # variables to support colourised output
 my $colourisedOutput = 0;
+my $colourPallette = '0,0,32,35,34';
 my $regularColour = "";
 my $keyColour = "";
 my $ctColour = "";
 my $pctColour = "";
 my $graphColour = "";
+
+# we'll re-use inLine later for reading the input
+my $inLine;
+# read in rcfile - it'll just be args
+if (open (IFILE, "< " . $ENV{"HOME"} . "/.distributionrc")) {
+	while ($inLine = <IFILE>) {
+		chomp ($inLine);
+		unshift (@ARGV, $inLine);
+	}
+}
 
 # process input arguments -- any arguments that aren't known switches are stuck
 # onto @extraArgs - note that you can have one or two dashes before the option,
@@ -80,6 +91,7 @@ foreach my $arg (@ARGV) {
 	elsif ($arg =~ /^-+g(raph)*$/)           { $graphValues = 'vk'; }
 	elsif ($arg =~ /^-+c(har)*=(.+)$/)       { $histogramChar = $2; }
 	elsif ($arg =~ /^-+c(olor)*$/)           { $colourisedOutput = 1; }
+	elsif ($arg =~ /^-+p(allette)*=(.+)$/)   { $colourPallette = $2; $colourisedOutput = 1; }
 	elsif ($arg =~ /^-+s(ize)*=(.+)$/)       { $size = $2; }
 	elsif ($arg =~ /^-+t(okenize)*=(.+)$/)   { $tokenize = $2; }
 	elsif ($arg =~ /^-+m(atch)*=(.+)$/)      { $matchRegexp = $2; }
@@ -89,11 +101,13 @@ foreach my $arg (@ARGV) {
 
 # variables to support colourised output
 if ($colourisedOutput) {
-	$regularColour = chr(27) . "[0m";
-	$keyColour = chr(27) . "[0m";
-	$ctColour = chr(27) . "[32m";
-	$pctColour = chr(27) . "[35m";
-	$graphColour = chr(27) . "[34m";
+	# input should be comma-separated list of numerals
+	my @cp = split (',', $colourPallette);
+	# add ANSI colour commands around the values
+	for (my $i=0; $i < scalar @cp; $i++) {
+		$cp[$i] = chr(27) . '[' . $cp[$i] . 'm';
+	}
+	($regularColour, $keyColour, $ctColour, $pctColour, $graphColour) = @cp;
 }
 
 # for advanced graphing
@@ -160,7 +174,6 @@ if ($widthArg) { $width = $widthArg; }
 if ($heightArg) { $height = $heightArg; }
 
 # build the dict of input values
-my $inLine;
 my $nextStat = time() + $statInterval;
 my $valuesDict;
 my $totalValues = 0;
@@ -389,6 +402,8 @@ sub doArgs {
 	print "  --match=RE     only match lines (or tokens) that match this regexp, some substitutions follow:\n";
 	print "        word     ^[A-Z,a-z]+\$ - tokens/lines must be entirely alphabetic\n";
 	print "        num      ^\\d+\$        - tokens/lines must be entirely numeric\n";
+	print "  --pallette     comma-separated list of ANSI colour values for portions of the output\n";
+	print "                 in this order: regular, key, count, percent, graph\n";
 	print "  --size         size of histogram, can abbreviate to single character, overridden by --width/--height\n";
 	print "        small    40x10\n";
 	print "        medium   80x20\n";
@@ -403,7 +418,7 @@ sub doArgs {
 	print "You can use single-characters options, like so: -h=25 -w=20 -v. You must still include the =\n";
 	print "\n";
 	print "Samples:\n";
-	print "  du -sb /etc/* | $0 --graph\n";
+	print "  du -sb /etc/* | $0 --pallette=0,37,34,33,32 --graph\n";
 	print "  du -sk /etc/* | awk '{print \$2\" \"\$1}' | $0 --graph=kv\n";
 	print "  zcat /var/log/syslog*gz | $0 --char=o --tokenize=white\n";
 	print "  zcat /var/log/syslog*gz | awk '{print \$5}'  | $0 --t=word --m-word --h=15 --c=/\n";
