@@ -245,9 +245,11 @@ Val|Ct (Pct)       Histogram
 You can sometimes gain interesting insights just by measuring the size of files
 on your filesystem. Someone had captured slow-query-logs for every hour for
 most of a day. Assuming they all compressed the same (a dubious assumption; a
-proper analysis would be on uncompressed files), we can determine how many slow
-queries appeared during a given hour of the day. Something happened around 8am
-but otherwise the server seems to follow a normal sinusoidal patterm. 
+proper analysis would be on uncompressed files - but these files were large
+enough that uncompressing them would have caused server impact - this is good
+enough for illustration's sake), we can determine how many slow queries
+appeared during a given hour of the day.  Something happened around 8am but
+otherwise the server seems to follow a normal sinusoidal patterm. 
 
 ```
 $ du -sb mysql-slow.log.*.gz | ~/distribution -g | sort -n
@@ -267,6 +269,55 @@ mysql-slow.log.15.gz|2087129 (7.86%)  +++++++++++++++++++++++++++++
 mysql-slow.log.16.gz|1905867 (7.18%)  +++++++++++++++++++++++++++
 mysql-slow.log.19.gz|1314297 (4.95%)  +++++++++++++++++++
 mysql-slow.log.20.gz|802212 (3.02%)   ++++++++++++
+```
+
+A more-proper analysis on another set of slow logs involved actually getting
+the time the query ran, pulling out the date/hour portion of the timestamp, and
+graphing the result.
+
+At first blush, it might appear someone had captured logs for various hours of
+one day and at 10am for several days in a row. However, note that the Pct
+column shows this is only about 10% of all data, which we can also conclude
+because there are 964 histogram entries, of which we're only seeing a couple
+dozen. This means something happened on July 31st that caused slow queries all
+day, and then 10am is a time of day when slow queries tend to happen. To test
+this theory, we might re-run this with a "--height=600" (or even 900) to see
+nearly all the entries to get a more precise idea of what's going on.
+
+```
+$ zcat mysql-slow.log.*.gz \
+    | fgrep Time: \
+    | cut -c 9-17 \
+    | ~/distribution --width=90 --verbose \
+    | sort -n
+    Objects Processed: 30027    
+tokens/lines examined: 30027
+ tallied in histogram: 30027
+    histogram entries: 964
+              runtime: 1224.58ms
+Val      |Ct (Pct)    Histogram
+120731 03|274 (0.91%) ++++++++++++++++++++++++++++++++++
+120731 04|210 (0.70%) ++++++++++++++++++++++++++
+120731 07|208 (0.69%) ++++++++++++++++++++++++++
+120731 08|271 (0.90%) +++++++++++++++++++++++++++++++++
+120731 09|403 (1.34%) +++++++++++++++++++++++++++++++++++++++++++++++++
+120731 10|556 (1.85%) ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+120731 11|421 (1.40%) +++++++++++++++++++++++++++++++++++++++++++++++++++
+120731 12|293 (0.98%) ++++++++++++++++++++++++++++++++++++
+120731 13|327 (1.09%) ++++++++++++++++++++++++++++++++++++++++
+120731 14|318 (1.06%) +++++++++++++++++++++++++++++++++++++++
+120731 15|446 (1.49%) ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+120731 16|397 (1.32%) ++++++++++++++++++++++++++++++++++++++++++++++++
+120731 17|228 (0.76%) ++++++++++++++++++++++++++++
+120801 10|515 (1.72%) +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+120803 10|223 (0.74%) +++++++++++++++++++++++++++
+120809 10|215 (0.72%) ++++++++++++++++++++++++++
+120810 10|210 (0.70%) ++++++++++++++++++++++++++
+120814 10|193 (0.64%) ++++++++++++++++++++++++
+120815 10|205 (0.68%) +++++++++++++++++++++++++
+120816 10|207 (0.69%) +++++++++++++++++++++++++
+120817 10|226 (0.75%) ++++++++++++++++++++++++++++
+120819 10|197 (0.66%) ++++++++++++++++++++++++
 ```
 
 A typical problem for MySQL administrators is figuring out how many slow queries

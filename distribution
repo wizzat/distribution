@@ -301,9 +301,9 @@ print STDERR "|Ct (Pct)";
 for ($j = 7; $j <= $maxPreBarLen; $j++) { print STDERR " "; }
 print STDERR "Histogram";
 
-# for some reason this leads to an extra blank line if you sort
-# the colourised output
-print "$keyColour\n";
+# get ready for the output, but sorting gets hosed if we print the
+# colour code before the key, so put it on the line before
+print STDERR "$keyColour\n";
 
 # amount of other output reduces possible size of bar - alas
 my $maxBarWidth = $width - $maxPreBarLen - $maxKeyLen - 4;
@@ -361,13 +361,19 @@ for ($i = 0; $i < $height; $i++) {
 		}
 	}
 
-	# we do these antics of printing $keyColour on the line before the key
-	# so that piping output to sort will work
-	print "$keyColour\n";
+	# FIXME: even with all these colour-printing antics, still one key will
+	# be printed with the wrong colour on sorted output most of the time,
+	# but i have no idea how to fix this other than to implement sorting of
+	# the output within the script itself.
+	if ($i == $height - 1) {
+		# put the terminal back into a normal-colour mode on last entry
+		print "$regularColour\n";
+	} else {
+		# we do these antics of printing $keyColour on the line before
+		# the key so that piping output to sort will work
+		print "$keyColour\n";
+	}
 }
-
-# put the terminal back into a normal-colour mode
-print $regularColour;
 
 exit 0;
 
