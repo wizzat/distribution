@@ -75,8 +75,8 @@ Options
 ```
 
 
-Examples
-========
+Syslog Analysis Example
+=======================
 
 You can grab out parts of your syslog ask the script to tokenize on non-word
 delimiters, then only match words. The verbosity gives you some stats as it
@@ -113,6 +113,10 @@ dhclient      |736 (2.00%)    ooo
 Trying        |667 (1.82%)    ooo
 dnsmasq       |562 (1.53%)    ooo
 ```
+
+
+Process List Example
+====================
 
 You can start thinking of normal commands in new ways. For example, you can take
 your "ps ax" output, get just the command portion, and do a word-analysis on it.
@@ -151,6 +155,10 @@ ConnectBackupJobsEnabled|12 (0.74%)  |||||||
 session                 |12 (0.74%)  |||||||
 ```
 
+
+Graphing Pre-Tallied Tokens Example
+===================================
+
 You can use very short versions of the options in case you don't like typing a
 lot. The default character is "+" because it creates a type of grid system
 which makes it easy for the eye to trace right/left or up/down. If the input is
@@ -176,6 +184,10 @@ Val                   |Ct (Pct)         Histogram
 /etc/xdg              |111971 (0.64%)   +
 /etc/java-7-openjdk   |100414 (0.58%)   +
 ```
+
+
+Keys in Natural Order Examples
+==============================
 
 The output is separated between STDOUT and STDERR so you can sort the resulting
 histogram by values. This is useful for time series or other cases where the
@@ -242,14 +254,22 @@ Val|Ct (Pct)       Histogram
 17|176 (0.18%)    :
 ```
 
+
+MySQL Slow Query Log Analysis Examples
+======================================
+
 You can sometimes gain interesting insights just by measuring the size of files
 on your filesystem. Someone had captured slow-query-logs for every hour for
 most of a day. Assuming they all compressed the same (a proper analysis would
-be on uncompressed files - but uncompressing them would have caused server
-impact - this is good enough for illustration's sake), we can determine how
-many slow queries appeared during a given hour of the day.  Something happened
-around 8am but otherwise the server seems to follow a normal sinusoidal
-pattern.
+be on uncompressed files - uncompressing them would have caused server impact -
+this is good enough for illustration's sake), we can determine how much slow
+query traffic appeared during a given hour of the day.
+
+Something happened around 8am but otherwise the server seems to follow a normal
+sinusoidal pattern. But note because we're only analysing the file size, it
+could be that 8am had the same number of slow queries, but that the queries
+themselves were larger in byte-count. Or that the queries didn't compress as
+well.
 
 Also note that we aren't seeing every histogram entry here. Always take care to
 remember the tool is hiding low-frequency data from you unless you ask it to
@@ -371,6 +391,10 @@ Val|Ct (Pct)      Histogram
 19|59 (0.43%)    +
 20|66 (0.48%)    +
 ```
+
+
+Apache Logs Analysis Example
+============================
 
 Even if you know sed/awk/grep, the built-in tokenizing/matching can be less
 verbose. Say you want to look at all the URLs in your Apache logs. People will
