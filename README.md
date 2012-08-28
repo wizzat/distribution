@@ -89,7 +89,8 @@ anacron[5657]: Job
 anacron[5657]: Can't
 anacron[5657]: Normal
 NetworkManager[1197]: SCPlugin-Ifupdown:
-__________________
+
+----------------^ input--------v graphed------------------
 
 $ zcat /var/log/syslog*gz \
     | awk '{print $5" "$6}' \
@@ -241,6 +242,81 @@ Val|Ct (Pct)       Histogram
 17|176 (0.18%)    :
 ```
 
+You can sometimes gain interesting insights just by measuring the size of files
+on your filesystem. Someone had captured slow-query-logs for every hour for
+most of a day. Assuming they all compressed the same (a dubious assumption; a
+proper analysis would be on uncompressed files), we can determine how many slow
+queries appeared during a given hour of the day. Something happened around 8am
+but otherwise the server seems to follow a normal sinusoidal patterm. 
+
+```
+$ du -sb mysql-slow.log.*.gz | ~/distribution -g | sort -n
+Val                 |Ct (Pct)         Histogram
+mysql-slow.log.01.gz|1426694 (5.38%)  ++++++++++++++++++++
+mysql-slow.log.02.gz|1499467 (5.65%)  +++++++++++++++++++++
+mysql-slow.log.03.gz|1840727 (6.94%)  ++++++++++++++++++++++++++
+mysql-slow.log.04.gz|1570131 (5.92%)  ++++++++++++++++++++++
+mysql-slow.log.05.gz|1439021 (5.42%)  ++++++++++++++++++++
+mysql-slow.log.07.gz|859939 (3.24%)   ++++++++++++
+mysql-slow.log.08.gz|2976177 (11.21%) ++++++++++++++++++++++++++++++++++++++++++
+mysql-slow.log.09.gz|792269 (2.99%)   +++++++++++
+mysql-slow.log.11.gz|722148 (2.72%)   ++++++++++
+mysql-slow.log.12.gz|825731 (3.11%)   ++++++++++++
+mysql-slow.log.14.gz|1476023 (5.56%)  +++++++++++++++++++++
+mysql-slow.log.15.gz|2087129 (7.86%)  +++++++++++++++++++++++++++++
+mysql-slow.log.16.gz|1905867 (7.18%)  +++++++++++++++++++++++++++
+mysql-slow.log.19.gz|1314297 (4.95%)  +++++++++++++++++++
+mysql-slow.log.20.gz|802212 (3.02%)   ++++++++++++
+```
+
+A typical problem for MySQL administrators is figuring out how many slow queries
+are taking how long. The slow query log can be quite verbose. Analysing it in a
+visual nature can help. For example, there is a line that looks like this in the
+slow query log:
+
+```
+# Query_time: 5.260353  Lock_time: 0.000052  Rows_sent: 0  Rows_examined: 2414  Rows_affected: 1108  Rows_read: 2
+```
+
+It might be useful to see how many queries ran in buckets of single seconds. You
+can simply grab that third field and get the pre-decimal portion with a couple of
+simple awk commands, then graph the result, like so:
+
+```
+$ head -100000 mysql-slow.log.20120710 \
+    | fgrep 'Query_time' \
+    | awk '{print $3}' \
+    | awk -F . '{print $1}' \
+    | ~/distribution --verbose --size=med \
+    | sort -n
+    Objects Processed: 13830    
+tokens/lines examined: 13830
+ tallied in histogram: 13830
+    histogram entries: 124
+              runtime: 108.95ms
+Val|Ct (Pct)      Histogram
+0 |2652 (19.18%) ++++++++++++++++++++++++++++++++++++++++
+2 |5483 (39.65%) +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+3 |1601 (11.58%) ++++++++++++++++++++++++
+4 |785 (5.68%)   ++++++++++++
+5 |418 (3.02%)   +++++++
+6 |305 (2.21%)   +++++
+7 |241 (1.74%)   ++++
+8 |207 (1.50%)   ++++
+9 |157 (1.14%)   +++
+10|163 (1.18%)   +++
+11|179 (1.29%)   +++
+12|117 (0.85%)   ++
+13|87 (0.63%)    ++
+14|151 (1.09%)   +++
+15|118 (0.85%)   ++
+16|100 (0.72%)   ++
+17|69 (0.50%)    ++
+18|63 (0.46%)    +
+19|59 (0.43%)    +
+20|66 (0.48%)    +
+```
+
 Even if you know sed/awk/grep, the built-in tokenizing/matching can be less
 verbose. Say you want to look at all the URLs in your Apache logs. People will
 be doing GET /a/b/c /a/c/f q/r/s q/n/p. A and Q are the most common, so you can
@@ -251,8 +327,8 @@ common portions of the URL that don't show up in the prefix.
 
 ```
 $ zcat access.log*gz \
-        | awk '{print $7}' \
-        | distribution -t=/ -h=15
+    | awk '{print $7}' \
+    | distribution -t=/ -h=15
 Val            |Ct (Pct)      Histogram
 Art            |1839 (16.58%) +++++++++++++++++++++++++++++++++++++++++++++++++
 Rendered       |1596 (14.39%) ++++++++++++++++++++++++++++++++++++++++++

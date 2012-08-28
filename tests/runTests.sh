@@ -7,7 +7,8 @@ if [ "xxx$distribution" == "xxx" ] ; then
 fi
 
 # the tests
-echo "Test #6 is designed to take several seconds."
+echo "Test #6 is designed to take several seconds on a modern CPU."
+echo ""
 echo -n "Running test: 1. "
 cat input01.txt | $distribution --rcfile=../distributionrc --graph --height=35 --width=120 --char=dt --color --verbose > output001.txt 2> output101.txt
 
@@ -37,7 +38,7 @@ Expected output:
  = b2d463a3fb20df2c01fb95b1e2006784  output001.txt
  = 6e03fecd199ec6e93540fbd08afe6b94  output002.txt
  = 4edb70a142774c686c9268b88a00cb01  output003.txt
- = 5902f595bd48b5eae51e4d655b85f44e  output004.txt
+ = cae71e886be0ff84fe8c887ccff9c636  output004.txt
  = 83332608dffc4e6692049931c9c5d5fc  output005.txt
  = f993d1b611f5d23fde36590717a0cbec  output006.txt
  = bdf7a31f8b453e9075f63b6280749021  output007.txt
