@@ -244,12 +244,16 @@ Val|Ct (Pct)       Histogram
 
 You can sometimes gain interesting insights just by measuring the size of files
 on your filesystem. Someone had captured slow-query-logs for every hour for
-most of a day. Assuming they all compressed the same (a dubious assumption; a
-proper analysis would be on uncompressed files - but these files were large
-enough that uncompressing them would have caused server impact - this is good
-enough for illustration's sake), we can determine how many slow queries
-appeared during a given hour of the day.  Something happened around 8am but
-otherwise the server seems to follow a normal sinusoidal patterm. 
+most of a day. Assuming they all compressed the same (a proper analysis would
+be on uncompressed files - but uncompressing them would have caused server
+impact - this is good enough for illustration's sake), we can determine how
+many slow queries appeared during a given hour of the day.  Something happened
+around 8am but otherwise the server seems to follow a normal sinusoidal
+pattern.
+
+Also note that we aren't seeing every histogram entry here. Always take care to
+remember the tool is hiding low-frequency data from you unless you ask it to
+draw uncommonly-tall histograms.
 
 ```
 $ du -sb mysql-slow.log.*.gz | ~/distribution -g | sort -n
@@ -277,7 +281,7 @@ graphing the result.
 
 At first blush, it might appear someone had captured logs for various hours of
 one day and at 10am for several days in a row. However, note that the Pct
-column shows this is only about 10% of all data, which we can also conclude
+column shows this is only about 20% of all data, which we can also conclude
 because there are 964 histogram entries, of which we're only seeing a couple
 dozen. This means something happened on July 31st that caused slow queries all
 day, and then 10am is a time of day when slow queries tend to happen. To test
