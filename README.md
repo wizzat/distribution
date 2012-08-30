@@ -191,7 +191,7 @@ Keys in Natural Order Examples
 
 The output is separated between STDOUT and STDERR so you can sort the resulting
 histogram by values. This is useful for time series or other cases where the
-keys you're searching on are in some natural order.
+keys you're graphing are in some natural order.
 
 ```
 $ cat NotServingRegionException-DateHour.txt \
@@ -353,43 +353,56 @@ slow query log:
 # Query_time: 5.260353  Lock_time: 0.000052  Rows_sent: 0  Rows_examined: 2414  Rows_affected: 1108  Rows_read: 2
 ```
 
-It might be useful to see how many queries ran in buckets of single seconds. You
-can simply grab that third field and get the pre-decimal portion with a couple of
-simple awk commands, then graph the result, like so:
+It might be useful to see how many queries ran for how long in increments of
+tenths of seconds. You can grab that third field and get tenth-second
+precision with a simple awk command, then graph the result.
+
+It seems interesting that there are spikes at 3.2, 3.5, 4, 4.3, 4.5 seconds.
+One hypothesis might be that those are individual queries, each warranting its
+own analysis.
 
 ```
-$ head -100000 mysql-slow.log.20120710 \
-    | fgrep 'Query_time' \
-    | awk '{print $3}' \
-    | awk -F . '{print $1}' \
-    | ~/distribution --verbose --size=med \
+$ head -90000 mysql-slow.log.20120710 \
+    | fgrep Query_time: \
+    | awk '{print int($3 * 10)/10}' \
+    | ~/distribution --verbose --height=30 --char='|o' \
     | sort -n
-    Objects Processed: 13830    
-tokens/lines examined: 13830
- tallied in histogram: 13830
-    histogram entries: 124
-              runtime: 108.95ms
-Val|Ct (Pct)      Histogram
-0 |2652 (19.18%) ++++++++++++++++++++++++++++++++++++++++
-2 |5483 (39.65%) +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-3 |1601 (11.58%) ++++++++++++++++++++++++
-4 |785 (5.68%)   ++++++++++++
-5 |418 (3.02%)   +++++++
-6 |305 (2.21%)   +++++
-7 |241 (1.74%)   ++++
-8 |207 (1.50%)   ++++
-9 |157 (1.14%)   +++
-10|163 (1.18%)   +++
-11|179 (1.29%)   +++
-12|117 (0.85%)   ++
-13|87 (0.63%)    ++
-14|151 (1.09%)   +++
-15|118 (0.85%)   ++
-16|100 (0.72%)   ++
-17|69 (0.50%)    ++
-18|63 (0.46%)    +
-19|59 (0.43%)    +
-20|66 (0.48%)    +
+    Objects Processed: 12269    
+tokens/lines examined: 12269
+ tallied in histogram: 12269
+    histogram entries: 481
+              runtime: 12.53ms
+Val|Ct (Pct)     Histogram
+0  |1090 (8.88%) ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||o
+2  |1018 (8.30%) |||||||||||||||||||||||||||||||||||||||||||||||||||||||||o
+2.1|949 (7.73%)  |||||||||||||||||||||||||||||||||||||||||||||||||||||o
+2.2|653 (5.32%)  |||||||||||||||||||||||||||||||||||||o
+2.3|552 (4.50%)  |||||||||||||||||||||||||||||||o
+2.4|554 (4.52%)  |||||||||||||||||||||||||||||||o
+2.5|473 (3.86%)  ||||||||||||||||||||||||||o
+2.6|423 (3.45%)  ||||||||||||||||||||||||o
+2.7|394 (3.21%)  ||||||||||||||||||||||o
+2.8|278 (2.27%)  |||||||||||||||o
+2.9|189 (1.54%)  ||||||||||o
+3  |173 (1.41%)  |||||||||o
+3.1|193 (1.57%)  ||||||||||o
+3.2|200 (1.63%)  |||||||||||o
+3.3|138 (1.12%)  |||||||o
+3.4|176 (1.43%)  ||||||||||o
+3.5|213 (1.74%)  ||||||||||||o
+3.6|157 (1.28%)  ||||||||o
+3.7|134 (1.09%)  |||||||o
+3.8|121 (0.99%)  ||||||o
+3.9|96 (0.78%)   |||||o
+4  |110 (0.90%)  ||||||o
+4.1|80 (0.65%)   ||||o
+4.2|84 (0.68%)   ||||o
+4.3|90 (0.73%)   |||||o
+4.4|76 (0.62%)   ||||o
+4.5|93 (0.76%)   |||||o
+4.6|79 (0.64%)   ||||o
+4.7|71 (0.58%)   ||||o
+5.1|70 (0.57%)   |||o
 ```
 
 
