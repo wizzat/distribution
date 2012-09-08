@@ -37,12 +37,13 @@ use Time::HiRes qw( time );
 # for determining how long this program ran
 my $startTime = time() * 1000;
 
-# defaults - overridden by distributionrc - overridden by commandline options
+# defaults - overridden first by distributionrc then by commandline options
 my $size = '';
 my $width = 80;
 my $height = 15;
 my $widthArg = 0;
 my $heightArg = 0;
+my $logarithmic = 0;
 # character for ease of eye to scan left/right/up/down
 my $histogramChar = "+";
 my $unicode = 0;
@@ -97,6 +98,7 @@ foreach my $arg (@ARGV) {
 	elsif ($arg =~ /^-+g(raph)*$/)           { $graphValues = 'vk'; }
 	elsif ($arg =~ /^-+c(har)*=(.+)$/)       { $histogramChar = $2; }
 	elsif ($arg =~ /^-+c(olor)*$/)           { $colourisedOutput = 1; }
+	elsif ($arg =~ /^-+l(ogarithmic)*$/)     { $logarithmic = 2; }
 	elsif ($arg =~ /^-+p(alette)*=(.+)$/)    { $colourPalette = $2; $colourisedOutput = 1; }
 	elsif ($arg =~ /^-+s(ize)*=(.+)$/)       { $size = $2; }
 	elsif ($arg =~ /^-+t(okenize)*=(.+)$/)   { $tokenize = $2; }
@@ -254,9 +256,15 @@ my @sortedKeys = reverse sort { int($valuesDict->{$a}) <=> int($valuesDict->{$b}
 my $totalKeys = scalar @sortedKeys;
 if ($totalKeys < $height) { $height = $totalKeys; }
 
+# for logarithmic graphs, need to know widest value
+my $maxCount = $valuesDict->{$sortedKeys[0]};
+my $maxLog = 0;
+if ($logarithmic) {
+	$maxLog = log($maxCount);
+}
+
 my $i;
 my $j;
-my $maxCount = $valuesDict->{$sortedKeys[0]};
 my $keyText;
 my $ctText;
 my $pctText;
@@ -271,7 +279,11 @@ for ($i = 0; $i < $height; $i++) {
 	# how many times this key occurred in the input
 	my $count = $valuesDict->{$sortedKeys[$i]};
 	# determine the bar width based on key occurence
-	$barWidth->[$i] = $count / $maxCount;
+	if ($logarithmic) {
+		$barWidth->[$i] = log($count) / $maxLog;
+	} else {
+		$barWidth->[$i] = $count / $maxCount;
+	}
 	# determine the percent of key frequency
 	my $percentile = $count / $totalValues * 100;
 	# graph axis labels, really
@@ -410,10 +422,11 @@ sub doArgs {
 	print "        vk       input is ordered value then key\n";
 	print "  --height=N     height of histogram, headers non-inclusive, overrides --size\n";
 	print "  --help         get help\n";
+	print "  --logarithmic  logarithmic graph\n";
 	print "  --match=RE     only match lines (or tokens) that match this regexp, some substitutions follow:\n";
 	print "        word     ^[A-Z,a-z]+\$ - tokens/lines must be entirely alphabetic\n";
 	print "        num      ^\\d+\$        - tokens/lines must be entirely numeric\n";
-	print "  --palette=P   comma-separated list of ANSI colour values for portions of the output\n";
+	print "  --palette=P    comma-separated list of ANSI colour values for portions of the output\n";
 	print "                 in this order: regular, key, count, percent, graph. implies --color.\n";
 	print "  --rcfile=F     use this rcfile instead of \$HOME/.distributionrc - must be first argument!\n";
 	print "  --size=S       size of histogram, can abbreviate to single character, overridden by --width/--height\n";
