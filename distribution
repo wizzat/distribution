@@ -230,11 +230,10 @@ if ($graphValues) {
 			}
 		}
 		if ($verbose && time() > $nextStat) {
-			print STDERR "    Objects Processed: $totalObjects..." . chr(13);
+			print STDERR "    Objects Processed: $totalObjects" . chr(13);
 			$nextStat = time() + $statInterval;
 		}
 	}
-	if ($verbose) { print STDERR "    Objects Processed: $totalObjects    \n"; }
 }
 
 # the input may be empty. or we may have been too strict on the
