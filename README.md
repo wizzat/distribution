@@ -56,6 +56,7 @@ Options
         vk       input is ordered value then key
   --height=N     height of histogram, headers non-inclusive, overrides --size
   --help         get help
+  --logarithmic  logarithmic graph
   --match=RE     only match lines (or tokens) that match this regexp, some substitutions follow:
         word     ^[A-Z,a-z]+$ - tokens/lines must be entirely alphabetic
         num      ^\d+$        - tokens/lines must be entirely numeric
