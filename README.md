@@ -4,6 +4,8 @@ distribution
 Short, simple, direct scripts for creating character-based histograms in a
 command terminal.
 
+![diagram](https://raw.github.com/time-palominodb/distribution/master/screenshot.png?raw=true)
+
 
 Purpose
 =======
