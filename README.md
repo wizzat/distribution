@@ -21,8 +21,9 @@ There are a few typical use cases for graphs in a terminal:
    2. A list of tallies + tokens, one-per-line. Create a graph with labels.
    3. A list of tallies only. Create a graph without labels.
 
-This project takes care of the (somewhat more complicated) first three cases.
-For the final case, there is another project: https://github.com/holman/spark.
+For the final case, there is another project: https://github.com/holman/spark that
+will produce simpler, more-compact graphs. This script will produce rather lengthy
+and verbose graphs with far more resolution, which you may prefer.
 
 
 Features
@@ -438,6 +439,58 @@ robots.txt     |125 (1.13%)   ++++
 RingtoneEP1.mp3|125 (1.13%)   ++++
 Poetry         |108 (0.97%)   +++
 RingtoneEP2.mp3|95 (0.86%)    +++
+```
+
+
+Graphing a Series of Numbers Example
+====================================
+
+Suppose you just have a list of integers you want to graph. For example, you've
+captured a "show global status" for every second for 5 minutes, and you want to
+grep out just one stat for the five-minute sample and graph it.
+
+Or, slightly more-difficult, you want to pull out the series of numbers and
+only graph the difference between each pair (as in a monotonically-increasing
+counter). The ```--numonly=``` option takes care of both these cases. This option
+will override any "height" and simply graph all the numbers, since there's no
+frequency to dictate which values are more important to graph than others.
+
+Therefore there's a lot of output, which is snipped in the example output that
+follows. The "val" column is simply an ascending list of integers, so you can
+tell where output was snipped by the jumps in those values.
+
+```
+$ grep ^Innodb_data_reads globalStatus*.txt \
+    | awk '{print $2}' \
+    | distribution --numonly=mon --char='|+'
+Val|Ct (Pct)     Histogram
+0  |0 (0.00%)    +
+1  |0 (0.00%)    +
+91 |15 (0.05%)   +
+92 |14 (0.04%)   +
+93 |30 (0.10%)   |+
+94 |11 (0.03%)   +
+95 |922 (2.93%)  |||||||||||||||||||||||||||||||||||||||||||||||||||||||||+
+96 |372 (1.18%)  |||||||||||||||||||||||+
+97 |44 (0.14%)   ||+
+98 |37 (0.12%)   ||+
+99 |110 (0.35%)  ||||||+
+100|18 (0.06%)   |+
+101|12 (0.04%)   +
+102|19 (0.06%)   |+
+103|164 (0.52%)  ||||||||||+
+200|62 (0.20%)   |||+
+201|372 (1.18%)  |||||||||||||||||||||||+
+202|228 (0.72%)  ||||||||||||||+
+203|43 (0.14%)   ||+
+204|917 (2.91%)  ||||||||||||||||||||||||||||||||||||||||||||||||||||||||+
+205|64 (0.20%)   |||+
+206|178 (0.57%)  |||||||||||+
+207|90 (0.29%)   |||||+
+208|90 (0.29%)   |||||+
+209|101 (0.32%)  ||||||+
+453|0 (0.00%)    +
+454|0 (0.00%)    +
 ```
 
 

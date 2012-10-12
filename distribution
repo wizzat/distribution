@@ -44,6 +44,7 @@ my $height = 15;
 my $widthArg = 0;
 my $heightArg = 0;
 my $logarithmic = 0;
+my $numOnly = '';
 # character for ease of eye to scan left/right/up/down
 my $histogramChar = "+";
 my $unicode = 0;
@@ -99,6 +100,7 @@ foreach my $arg (@ARGV) {
 	elsif ($arg =~ /^-+c(har)*=(.+)$/)       { $histogramChar = $2; }
 	elsif ($arg =~ /^-+c(olor)*$/)           { $colourisedOutput = 1; }
 	elsif ($arg =~ /^-+l(ogarithmic)*$/)     { $logarithmic = 2; }
+	elsif ($arg =~ /^-+n(umonly)*=(.+)$/)    { $numOnly = $2; }
 	elsif ($arg =~ /^-+p(alette)*=(.+)$/)    { $colourPalette = $2; $colourisedOutput = 1; }
 	elsif ($arg =~ /^-+s(ize)*=(.+)$/)       { $size = $2; }
 	elsif ($arg =~ /^-+t(okenize)*=(.+)$/)   { $tokenize = $2; }
@@ -175,7 +177,7 @@ if ($size =~ /^f/) {
 }
 
 # if they passed in --width or --height, they probably meant it moreso than
-# defaults or the --size parameter
+# defaults or the --size parameter - so code this last
 if ($widthArg) { $width = $widthArg; }
 if ($heightArg) { $height = $heightArg; }
 
@@ -184,83 +186,45 @@ my $nextStat = time() + $statInterval;
 my $valuesDict;
 my $totalValues = 0;
 my $totalObjects = 0;
+my $graphVal = 0;
+my $maxVal = 0;
 
-if ($graphValues) {
-	# here is the case where we don't need to put the input into
-	# bins and tally - the data is pre-tallied for us
-	while ($inLine = <STDIN>) {
-		chomp ($inLine);
-		if ($graphValues eq 'vk') {
-			if ($inLine =~ /^\s*(\d+)\s+(.+)$/) {
-				$valuesDict->{$2} = $1;
-				$totalValues += $1;
-				$totalObjects++;
-			} else {
-				print STDERR " E Input line malformed and discarded: $inLine\n";
-			}
-		} elsif ($graphValues eq 'kv') {
-			if ($inLine =~ /^(.+?)\s+(\d+)$/) {
-				$valuesDict->{$1} = $2;
-				$totalValues += $2;
-				$totalObjects++;
-			} else {
-				print STDERR " E Input line malformed and discarded: $inLine\n";
-			}
-		}
-	}
+# three modes of operation
+if ($numOnly) {
+	readNumerics();
+} elsif ($graphValues) {
+	readPretalliedTokens();
 } else {
-	# read in lines and build hash object from it
-	while ($inLine = <STDIN>) {
-		chomp($inLine);
-		if ($tokenize) {
-			# in this case we break the line into tokens and tally them
-			foreach my $lineToken (split (/$tokenize/, $inLine)) {
-				$totalObjects++;
-				if ($lineToken =~ /$matchRegexp/) {
-					$valuesDict->{$lineToken}++;
-					$totalValues++;
-				}
-			}
-		} else {
-			# in this case the entire line is the token to be tallied
-			$totalObjects++;
-			if ($inLine =~ /$matchRegexp/) {
-				$valuesDict->{$inLine}++;
-				$totalValues++;
-			}
-		}
-		if ($verbose && time() > $nextStat) {
-			print STDERR "    Objects Processed: $totalObjects..." . chr(13);
-			$nextStat = time() + $statInterval;
-		}
-	}
-	if ($verbose) { print STDERR "    Objects Processed: $totalObjects    \n"; }
+	readLinesBuildHash();
 }
 
-# the input may be empty. or we may have been too strict on the
-# matching regexp passed in. either way, we were left with nothing.
-if ($totalValues == 0) {
-	if ($totalObjects > 0) {
-		print STDERR "All input filtered! ";
-	} else {
-		print STDERR "No input! ";
-	}
-	print STDERR "No histogram for you.\n";
-	exit 255;
-}
+# see if there was input
+checkValuesObjects();
 
-# get the keys ordered - we'll only print the most common keys
-my @sortedKeys = reverse sort { int($valuesDict->{$a}) <=> int($valuesDict->{$b}) } keys %{$valuesDict};
+my $totalKeys;
+my @sortedKeys;
+
+# if we're just graphing a bunch of numbers, no need to sort
+# the values dict
+if ($numOnly) {
+	# here we sort on KEYS not VALUES like other cases
+	@sortedKeys = sortKeysByKey();
+
+	# we graph everything we're given - throw away nothing!
+	$height = $totalObjects;
+} else {
+	# build the sorted dict
+	@sortedKeys = sortKeysByValueFrequency();
+}
 
 # if there aren't height # of distinct values, use less
-my $totalKeys = scalar @sortedKeys;
+$totalKeys = scalar @sortedKeys;
 if ($totalKeys < $height) { $height = $totalKeys; }
 
-# for logarithmic graphs, need to know widest value
-my $maxCount = $valuesDict->{$sortedKeys[0]};
+# for logarithmic graphs
 my $maxLog = 0;
 if ($logarithmic) {
-	$maxLog = log($maxCount);
+	$maxLog = log($maxVal);
 }
 
 my $i;
@@ -282,7 +246,7 @@ for ($i = 0; $i < $height; $i++) {
 	if ($logarithmic) {
 		$barWidth->[$i] = log($count) / $maxLog;
 	} else {
-		$barWidth->[$i] = $count / $maxCount;
+		$barWidth->[$i] = $count / $maxVal;
 	}
 	# determine the percent of key frequency
 	my $percentile = $count / $totalValues * 100;
@@ -303,96 +267,223 @@ if ($verbose) {
 	print STDERR "tokens/lines examined: $totalObjects\n";
 	print STDERR " tallied in histogram: $totalValues\n";
 	print STDERR "    histogram entries: $totalKeys\n";
-	print STDERR "              runtime: ${totalMillis}ms\n";;
+	print STDERR "              runtime: ${totalMillis}ms\n";
 }
 
-# print a header with alignment from key names
-print STDERR "Val";
-for ($j = 4; $j <= $maxKeyLen; $j++) { print STDERR " "; }
-print STDERR "|Ct (Pct)";
-for ($j = 7; $j <= $maxPreBarLen; $j++) { print STDERR " "; }
-print STDERR "Histogram";
+outputGraph();
 
-# get ready for the output, but sorting gets hosed if we print the
-# colour code before the key, so put it on the line before
-print STDERR "$keyColour\n";
+exit 0;
 
-# amount of other output reduces possible size of bar - alas
-my $maxBarWidth = $width - $maxPreBarLen - $maxKeyLen - 4;
+# --------------------------------------------------------------------------- #
+#                                 subroutines
+# --------------------------------------------------------------------------- #
 
-for ($i = 0; $i < $height; $i++) {
-	# first the key that we aggregated
-	print $keyText->[$i];
-	print $regularColour;
-	# alignment
-	for ($j = length ($keyText->[$i]); $j < $maxKeyLen; $j++) { print " "; }
-	# separater between keys and count/pct
-	print "|";
-	print $ctColour;
-	print $ctText->[$i] . " ";
-	print $pctColour;
-	print $pctText->[$i];
-	for ($j = length ($ctText->[$i]) + length ($pctText->[$i]); $j <= $maxPreBarLen; $j++) { print " "; }
-	print $graphColour;
-	for ($j = 0; $j < int ($barWidth->[$i] * $maxBarWidth); $j++) {
+# get the keys ordered - we'll only print the most common keys
+sub sortKeysByValueFrequency {
+	my @sortedKeys = reverse sort { int($valuesDict->{$a}) <=> int($valuesDict->{$b}) } keys %{$valuesDict};
+	return @sortedKeys;
+}
+
+# get the keys ordered simply by key
+sub sortKeysByKey {
+	my @sortedKeys = sort { int($a) <=> int($b) } keys %{$valuesDict};
+	return @sortedKeys;
+}
+
+# here we just pull in a stream of numerics and graph them, optionally graphing
+# the difference between each pair of values
+sub readNumerics {
+	# monotonically-increasing pairs, must have at least one value
+	my $lastVal = undef;
+
+	while ($inLine = <STDIN>) {
+		chomp ($inLine);
+		if ($numOnly =~ /^m/i) {
+			if (defined $lastVal) {
+				$graphVal= $inLine - $lastVal;
+				$totalValues += $graphVal;
+				$totalObjects++;
+			}
+			$lastVal = $inLine;
+		} else {
+			$graphVal= $inLine;
+			$totalValues += $inLine;
+			$totalObjects++;
+		}
+
+		if ($graphVal > $maxVal) { $maxVal = $graphVal; }
+
+		# we just build a list where the keys are line num and values
+		# are the value
+		$valuesDict->{$totalObjects} = $graphVal;
+	}
+}
+
+# read in lines and build hash object from it
+sub readLinesBuildHash {
+	while ($inLine = <STDIN>) {
+		chomp($inLine);
+		if ($tokenize) {
+			# in this case we break the line into tokens and tally them
+			foreach my $lineToken (split (/$tokenize/, $inLine)) {
+				$totalObjects++;
+				if ($lineToken =~ /$matchRegexp/) {
+					$valuesDict->{$lineToken}++;
+					if ($lineToken > $maxVal) { $maxVal = $lineToken; }
+					$totalValues++;
+				}
+			}
+		} else {
+			# in this case the entire line is the token to be tallied
+			$totalObjects++;
+			if ($inLine =~ /$matchRegexp/) {
+				$valuesDict->{$inLine}++;
+				if ($inLine > $maxVal) { $maxVal = $inLine; }
+				$totalValues++;
+			}
+		}
+		if ($verbose && time() > $nextStat) {
+			print STDERR "    Objects Processed: $totalObjects..." . chr(13);
+			$nextStat = time() + $statInterval;
+		}
+	}
+	if ($verbose) { print STDERR "    Objects Processed: $totalObjects    \n"; }
+}
+
+# here is the case where we don't need to put the input into
+# bins and tally - the data is pre-tallied for us
+sub readPretalliedTokens {
+	while ($inLine = <STDIN>) {
+		chomp ($inLine);
+		if ($graphValues eq 'vk') {
+			if ($inLine =~ /^\s*(\d+)\s+(.+)$/) {
+				$valuesDict->{$2} = $1;
+				$totalValues += $1;
+				if ($1 > $maxVal) { $maxVal = $1; }
+				$totalObjects++;
+			} else {
+				print STDERR " E Input line malformed and discarded: $inLine\n";
+			}
+		} elsif ($graphValues eq 'kv') {
+			if ($inLine =~ /^(.+?)\s+(\d+)$/) {
+				$valuesDict->{$1} = $2;
+				$totalValues += $2;
+				if ($2 > $maxVal) { $maxVal = $2; }
+				$totalObjects++;
+			} else {
+				print STDERR " E Input line malformed and discarded: $inLine\n";
+			}
+		}
+	}
+}
+
+# see if there was input
+sub checkValuesObjects {
+	# the input may be empty. or we may have been too strict on the
+	# matching regexp passed in. either way, we were left with nothing.
+	if ($totalValues == 0) {
+		if ($totalObjects > 0) {
+			print STDERR "All input filtered! ";
+		} else {
+			print STDERR "No input! ";
+		}
+		print STDERR "No histogram for you.\n";
+		exit 255;
+	}
+}
+
+# the arrays, hashes, variables must be all-correct for this to
+# work, TODO: list out which ones they are, convert to functional
+# keyText->[]  - list of the keys
+# pctText->[]  - list of the percents
+# ctText->[]   - list of the counts
+# barWidth->[] - list of the widths of the bars
+sub outputGraph {
+	# print a header with alignment from key names
+	print STDERR "Val";
+	for ($j = 4; $j <= $maxKeyLen; $j++) { print STDERR " "; }
+	print STDERR "|Ct (Pct)";
+	for ($j = 7; $j <= $maxPreBarLen; $j++) { print STDERR " "; }
+	print STDERR "Histogram";
+
+	# get ready for the output, but sorting gets hosed if we print the
+	# colour code before the key, so put it on the line before
+	print STDERR "$keyColour\n";
+
+	# amount of other output reduces possible size of bar - alas
+	my $maxBarWidth = $width - $maxPreBarLen - $maxKeyLen - 4;
+
+	for ($i = 0; $i < $height; $i++) {
+		# first the key that we aggregated
+		print $keyText->[$i];
+		print $regularColour;
+		# alignment
+		for ($j = length ($keyText->[$i]); $j < $maxKeyLen; $j++) { print " "; }
+		# separater between keys and count/pct
+		print "|";
+		print $ctColour;
+		print $ctText->[$i] . " ";
+		print $pctColour;
+		print $pctText->[$i];
+
+		# spaces 'til time to print the bar
+		for ($j = length ($ctText->[$i]) + length ($pctText->[$i]); $j <= $maxPreBarLen; $j++) { print " "; }
+
+		print $graphColour;
+		for ($j = 0; $j < int ($barWidth->[$i] * $maxBarWidth); $j++) {
+			if ($charWidth < 1) {
+				# print out maximum-width character (always last in array)
+				print $graphChars->[scalar @$graphChars - 1];
+			} else {
+				# we're printing regular non-unicode characters
+				if (length ($histogramChar) > 1 && !$unicode) {
+					# but still we have >1 byte! so print initial byte
+					# for all but the last character (printed outside loop)
+					print substr ($histogramChar, 0, 1);
+				} else {
+					print $histogramChar;
+				}
+			}
+		}
+
+		# print one too many bar characters so <1% gets a single bar character
+		my $remainder = ($barWidth->[$i] * $maxBarWidth) - int ($barWidth->[$i] * $maxBarWidth);
+		my $whichChar = int ($remainder / $charWidth);
 		if ($charWidth < 1) {
-			# print out maximum-width character (always last in array)
-			print $graphChars->[scalar @$graphChars - 1];
+			# if we have partial-width characters, get higher resolution
+			if ($barWidth->[$i] * $maxBarWidth > $charWidth) {
+				# we have more than charWidth remainder, so print out a
+				# remainder portion
+				print $graphChars->[$whichChar];
+			} else {
+				# we had minimum remainder, so print minimum-width
+				# character just print the minimum-width portion
+				print $graphChars->[0];
+			}
 		} else {
 			# we're printing regular non-unicode characters
 			if (length ($histogramChar) > 1 && !$unicode) {
-				# but still we have >1 byte! so print initial byte
-				# for all but the last character (printed outside loop)
-				print substr ($histogramChar, 0, 1);
+				# but still we have >1 byte! so print final byte of input string
+				print substr ($histogramChar, -1, 1);
 			} else {
 				print $histogramChar;
 			}
 		}
-	}
-	# print one too many bar characters so <1% gets a single bar character
-	my $remainder = ($barWidth->[$i] * $maxBarWidth) - int ($barWidth->[$i] * $maxBarWidth);
-	my $whichChar = int ($remainder / $charWidth);
-	if ($charWidth < 1) {
-		# if we have partial-width characters, get higher resolution
-		if ($barWidth->[$i] * $maxBarWidth > $charWidth) {
-			# we have more than charWidth remainder, so print out a
-			# remainder portion
-			print $graphChars->[$whichChar];
-		} else {
-			# we had minimum remainder, so print minimum-width
-			# character just print the minimum-width portion
-			print $graphChars->[0];
-		}
-	} else {
-		# we're printing regular non-unicode characters
-		if (length ($histogramChar) > 1 && !$unicode) {
-			# but still we have >1 byte! so print final byte of input string
-			print substr ($histogramChar, -1, 1);
-		} else {
-			print $histogramChar;
-		}
-	}
 
-	# FIXME: even with all these colour-printing antics, still one key will
-	# be printed with the wrong colour on sorted output most of the time,
-	# but i have no idea how to fix this other than to implement sorting of
-	# the output within the script itself.
-	if ($i == $height - 1) {
-		# put the terminal back into a normal-colour mode on last entry
-		print "$regularColour\n";
-	} else {
-		# we do these antics of printing $keyColour on the line before
-		# the key so that piping output to sort will work
-		print "$keyColour\n";
+		# FIXME: even with all these colour-printing antics, still one key will
+		# be printed with the wrong colour on sorted output most of the time,
+		# but i have no idea how to fix this other than to implement sorting of
+		# the output within the script itself.
+		if ($i == $height - 1) {
+			# put the terminal back into a normal-colour mode on last entry
+			print "$regularColour\n";
+		} else {
+			# we do these antics of printing $keyColour on the line before
+			# the key so that piping output to sort will work
+			print "$keyColour\n";
+		}
 	}
 }
-
-exit 0;
-
-
-# ----------------------------------------------------------------- #
-#                           subroutines
-# ----------------------------------------------------------------- #
 
 # usage
 sub doArgs {
@@ -426,6 +517,9 @@ sub doArgs {
 	print "  --match=RE     only match lines (or tokens) that match this regexp, some substitutions follow:\n";
 	print "        word     ^[A-Z,a-z]+\$ - tokens/lines must be entirely alphabetic\n";
 	print "        num      ^\\d+\$        - tokens/lines must be entirely numeric\n";
+	print "  --numonly=N    input is numerics, graph absolute values or monotonically-increasing differences\n";
+	print "        abs      input is absolute values\n";
+	print "        mon      input monotonically-increasing, graph differences (of 2nd and later values)\n";
 	print "  --palette=P    comma-separated list of ANSI colour values for portions of the output\n";
 	print "                 in this order: regular, key, count, percent, graph. implies --color.\n";
 	print "  --rcfile=F     use this rcfile instead of \$HOME/.distributionrc - must be first argument!\n";
