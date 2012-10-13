@@ -95,11 +95,16 @@ foreach my $arg (@ARGV) {
 	if ($arg =~ /^-+h(elp)*$/)               { doArgs(); exit 0; }
 	elsif ($arg =~ /^-+w(idth)*=(.+)$/)      { $widthArg = $2; }
 	elsif ($arg =~ /^-+h(eight)*=(.+)$/)     { $heightArg = $2; }
+	# can pass --graph without option
 	elsif ($arg =~ /^-+g(raph)*=(.+)$/)      { $graphValues = $2; }
 	elsif ($arg =~ /^-+g(raph)*$/)           { $graphValues = 'vk'; }
+	# --char takes option...
 	elsif ($arg =~ /^-+c(har)*=(.+)$/)       { $histogramChar = $2; }
+	# ...--color doesn't.
 	elsif ($arg =~ /^-+c(olor)*$/)           { $colourisedOutput = 1; }
 	elsif ($arg =~ /^-+l(ogarithmic)*$/)     { $logarithmic = 2; }
+	# can pass --numonly without option
+	elsif ($arg =~ /^-+n(umonly)$/)          { $numOnly = 'abs'; }
 	elsif ($arg =~ /^-+n(umonly)*=(.+)$/)    { $numOnly = $2; }
 	elsif ($arg =~ /^-+p(alette)*=(.+)$/)    { $colourPalette = $2; $colourisedOutput = 1; }
 	elsif ($arg =~ /^-+s(ize)*=(.+)$/)       { $size = $2; }
@@ -215,6 +220,7 @@ if ($numOnly) {
 } else {
 	# build the sorted dict
 	@sortedKeys = sortKeysByValueFrequency();
+	$maxVal = $valuesDict->{$sortedKeys[0]};
 }
 
 # if there aren't height # of distinct values, use less
@@ -236,24 +242,30 @@ my $preBarLen;
 my $barWidth;
 my $maxPreBarLen = 0;
 my $maxKeyLen = 0;
+
 # here is the complex part - read it carefully
 for ($i = 0; $i < $height; $i++) {
 	# print the i'th most-common key
 	$keyText->[$i] = $sortedKeys[$i];
+
 	# how many times this key occurred in the input
 	my $count = $valuesDict->{$sortedKeys[$i]};
+
 	# determine the bar width based on key occurence
 	if ($logarithmic) {
 		$barWidth->[$i] = log($count) / $maxLog;
 	} else {
 		$barWidth->[$i] = $count / $maxVal;
 	}
+
 	# determine the percent of key frequency
 	my $percentile = $count / $totalValues * 100;
+
 	# graph axis labels, really
 	$ctText->[$i] = sprintf ("%d", $count);
 	$pctText->[$i] = sprintf ("(%3.02f%%)", $percentile);
 	$preBarLen = length ($ctText->[$i]) + length ($pctText->[$i]);
+
 	# determine the longest key name and longest count/percent text for
 	# aligning the output
 	if ($preBarLen > $maxPreBarLen) { $maxPreBarLen = $preBarLen; }
@@ -329,7 +341,6 @@ sub readLinesBuildHash {
 				$totalObjects++;
 				if ($lineToken =~ /$matchRegexp/) {
 					$valuesDict->{$lineToken}++;
-					if ($lineToken > $maxVal) { $maxVal = $lineToken; }
 					$totalValues++;
 				}
 			}
@@ -338,7 +349,6 @@ sub readLinesBuildHash {
 			$totalObjects++;
 			if ($inLine =~ /$matchRegexp/) {
 				$valuesDict->{$inLine}++;
-				if ($inLine > $maxVal) { $maxVal = $inLine; }
 				$totalValues++;
 			}
 		}
@@ -493,7 +503,7 @@ sub doArgs {
 	print "         [--size={sm|med|lg|full} | --width=<width> --height=<height>]\n";
 	print "         [--color] [--palette=r,k,c,p,g]\n";
 	print "         [--tokenize=<tokenChar>]\n";
-	print "         [--graph[=[kv|vk]]\n";
+	print "         [--graph[=[kv|vk]] [--numonly=[mon|abs]]\n";
 	print "         [--char=<barChars>|<substitutionString>]\n";
 	print "         [--help] [--verbose]\n";
 	print "  --char=C       character(s) to use for histogram character, some substitutions follow:\n";
@@ -517,7 +527,7 @@ sub doArgs {
 	print "  --match=RE     only match lines (or tokens) that match this regexp, some substitutions follow:\n";
 	print "        word     ^[A-Z,a-z]+\$ - tokens/lines must be entirely alphabetic\n";
 	print "        num      ^\\d+\$        - tokens/lines must be entirely numeric\n";
-	print "  --numonly=N    input is numerics, graph absolute values or monotonically-increasing differences\n";
+	print "  --numonly=N    input is numerics, graph absolute values (default) or monotonically-increasing differences\n";
 	print "        abs      input is absolute values\n";
 	print "        mon      input monotonically-increasing, graph differences (of 2nd and later values)\n";
 	print "  --palette=P    comma-separated list of ANSI colour values for portions of the output\n";
