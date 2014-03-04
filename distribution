@@ -44,6 +44,9 @@ my $height = 15;
 my $widthArg = 0;
 my $heightArg = 0;
 my $logarithmic = 0;
+# every bucketPruneInterval keys, prune the hash to maxBuckets top keys
+my $bucketPruneInterval = 10000;
+my $maxBuckets = 1000;
 my $numOnly = '';
 # character for ease of eye to scan left/right/up/down
 my $histogramChar = "+";
@@ -98,6 +101,7 @@ foreach my $arg (@ARGV) {
 	# can pass --graph without option
 	elsif ($arg =~ /^-+g(raph)*=(.+)$/)      { $graphValues = $2; }
 	elsif ($arg =~ /^-+g(raph)*$/)           { $graphValues = 'vk'; }
+	elsif ($arg =~ /^-+b(uckets)*=(.+)$/)    { $maxBuckets = $2; }
 	# --char takes option...
 	elsif ($arg =~ /^-+c(har)*=(.+)$/)       { $histogramChar = $2; }
 	# ...--color doesn't.
@@ -296,6 +300,18 @@ sub sortKeysByValueFrequency {
 	return @sortedKeys;
 }
 
+# keep only the most maxBuckets keys
+sub pruneKeys {
+	my $newDict;
+	my $numKeysTransferred = 0;
+	foreach my $key (&sortKeysByValueFrequency) {
+		$newDict->{$key} = $valuesDict->{$key};
+		$numKeysTransferred++;
+		last if ($numKeysTransferred > $maxBuckets);
+	}
+	$valuesDict = $newDict;
+}
+
 # get the keys ordered simply by key
 sub sortKeysByKey {
 	my @sortedKeys = sort { int($a) <=> int($b) } keys %{$valuesDict};
@@ -333,6 +349,7 @@ sub readNumerics {
 
 # read in lines and build hash object from it
 sub readLinesBuildHash {
+	my $pruneObjects = 0;
 	while ($inLine = <STDIN>) {
 		chomp($inLine);
 		if ($tokenize) {
@@ -355,6 +372,10 @@ sub readLinesBuildHash {
 		if ($verbose && time() > $nextStat) {
 			print STDERR "    Objects Processed: $totalObjects..." . chr(13);
 			$nextStat = time() + $statInterval;
+		}
+		if ($pruneObjects++ >= $bucketPruneInterval) {
+			pruneKeys();
+			$pruneObjects = 0;
 		}
 	}
 	if ($verbose) { print STDERR "    Objects Processed: $totalObjects    \n"; }
@@ -506,6 +527,7 @@ sub doArgs {
 	print "         [--graph[=[kv|vk]] [--numonly[=mon|abs]]\n";
 	print "         [--char=<barChars>|<substitutionString>]\n";
 	print "         [--help] [--verbose]\n";
+	print "  --buckets=B    roughly maximum buckets allowed in hash (default 1,000)\n";
 	print "  --char=C       character(s) to use for histogram character, some substitutions follow:\n";
 	print "        ba       (▬) Bar\n";
 	print "        bl       (Ξ) Building\n";
@@ -556,4 +578,3 @@ sub doArgs {
 	print "  cat /usr/share/dict/words | awk '{print length(\$1)}' | $0 --c=* --w=50 --h=10 | sort -n\n";
 	print "\n";
 }
-
