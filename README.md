@@ -2,7 +2,7 @@ distribution
 ============
 
 Short, simple, direct scripts for creating character-based histograms in a
-command terminal.
+command terminal. Status: stable. Features added very rarely.
 
 ![diagram](https://raw.github.com/philovivero/distribution/master/screenshot.png?raw=true)
 
