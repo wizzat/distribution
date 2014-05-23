@@ -388,7 +388,7 @@ sub readPretalliedTokens {
 		chomp ($inLine);
 		if ($graphValues eq 'vk') {
 			if ($inLine =~ /^\s*(\d+)\s+(.+)$/) {
-				$valuesDict->{$2} = $1;
+				$valuesDict->{$2} += $1;
 				$totalValues += $1;
 				if ($1 > $maxVal) { $maxVal = $1; }
 				$totalObjects++;
@@ -397,7 +397,7 @@ sub readPretalliedTokens {
 			}
 		} elsif ($graphValues eq 'kv') {
 			if ($inLine =~ /^(.+?)\s+(\d+)$/) {
-				$valuesDict->{$1} = $2;
+				$valuesDict->{$1} += $2;
 				$totalValues += $2;
 				if ($2 > $maxVal) { $maxVal = $2; }
 				$totalObjects++;
