@@ -293,9 +293,8 @@ my $totalMillis = sprintf ("%.2f", ($endTime - $startTime));
 
 if ($verbose) {
 	print STDERR "tokens/lines examined: " . addCommas($totalObjects) . "    \n";
-	print STDERR "  unique tokens/lines: " . addCommas($totalValues) . "\n";
-	print STDERR "          keys pruned: " . addCommas($totalValues - $totalKeys) . "\n";
-	print STDERR " final histogram keys: " . addCommas($totalKeys) . "\n";
+	print STDERR " tokens/lines matched: " . addCommas($totalValues) . "\n";
+	print STDERR "       histogram keys: " . addCommas($totalKeys) . "\n";
 	print STDERR "              runtime: ${totalMillis}ms\n";
 }
 
@@ -354,8 +353,8 @@ sub readNumerics {
 
 		if ($graphVal > $maxVal) { $maxVal = $graphVal; }
 
-		# we just build a list where the keys are line num and values
-		# are the value
+		# we just build a list where the keys are line num and values are the
+		# value
 		$valuesDict->{$totalObjects} = $graphVal;
 	}
 }
