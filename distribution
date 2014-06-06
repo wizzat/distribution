@@ -1,5 +1,12 @@
 #!/usr/bin/perl
 
+# vim: set noexpandtab:
+# --
+# A recent battle with vim and a Go program finally settled this for me.
+# Tabs for indent, spaces for formatting. If you change your shiftwidth and
+# tabstop to different values and your code looks ugly, say aloud: tabs
+# for indent, spaces for formatting.
+
 # distribution - creates histograms based on input
 #
 # Version 1.0
