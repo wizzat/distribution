@@ -52,8 +52,8 @@ my $widthArg = 0;
 my $heightArg = 0;
 my $logarithmic = 0;
 # every bucketPruneInterval keys, prune the hash to maxBuckets top keys
-my $bucketPruneInterval = 10000;
-my $maxBuckets = 1000;
+my $bucketPruneInterval = 80000;
+my $maxBuckets = 4000;
 my $numOnly = '';
 # character for ease of eye to scan left/right/up/down
 my $histogramChar = "+";
@@ -197,7 +197,12 @@ if ($size =~ /^f/) {
 if ($widthArg) { $width = $widthArg; }
 if ($heightArg) { $height = $heightArg; }
 
-# build the dict of input values
+# maxBuckets should be at least a few thousand greater than height to reduce odds
+# of throwing away high-count values that appear sparingly in the data
+if ($maxBuckets < $height + 4000) {
+	$maxBuckets = $height + 4000;
+}
+
 my $nextStat = time() + $statInterval;
 my $valuesDict;
 my $totalValues = 0;
@@ -205,7 +210,7 @@ my $totalObjects = 0;
 my $graphVal = 0;
 my $maxVal = 0;
 
-# three modes of operation
+# build the dict of input values in one of the three modes of operation
 if ($numOnly) {
 	readNumerics();
 } elsif ($graphValues) {
@@ -287,9 +292,10 @@ my $endTime = time() * 1000;
 my $totalMillis = sprintf ("%.2f", ($endTime - $startTime));
 
 if ($verbose) {
-	print STDERR "tokens/lines examined: $totalObjects\n";
-	print STDERR " tallied in histogram: $totalValues\n";
-	print STDERR "    histogram entries: $totalKeys\n";
+	print STDERR "tokens/lines examined: " . addCommas($totalObjects) . "    \n";
+	print STDERR "  unique tokens/lines: " . addCommas($totalValues) . "\n";
+	print STDERR "          keys pruned: " . addCommas($totalValues - $totalKeys) . "\n";
+	print STDERR " final histogram keys: " . addCommas($totalKeys) . "\n";
 	print STDERR "              runtime: ${totalMillis}ms\n";
 }
 
@@ -335,7 +341,7 @@ sub readNumerics {
 		chomp ($inLine);
 		if ($numOnly =~ /^m/i) {
 			if (defined $lastVal) {
-				$graphVal= $inLine - $lastVal;
+				$graphVal = $inLine - $lastVal;
 				$totalValues += $graphVal;
 				$totalObjects++;
 			}
@@ -377,7 +383,7 @@ sub readLinesBuildHash {
 			}
 		}
 		if ($verbose && time() > $nextStat) {
-			print STDERR "    Objects Processed: $totalObjects..." . chr(13);
+			print STDERR "tokens/lines examined: " . addCommas($totalObjects) . "..." . chr(13);
 			$nextStat = time() + $statInterval;
 		}
 		if ($pruneObjects++ >= $bucketPruneInterval) {
@@ -385,7 +391,6 @@ sub readLinesBuildHash {
 			$pruneObjects = 0;
 		}
 	}
-	if ($verbose) { print STDERR "    Objects Processed: $totalObjects    \n"; }
 }
 
 # here is the case where we don't need to put the input into
@@ -428,6 +433,14 @@ sub checkValuesObjects {
 		print STDERR "No histogram for you.\n";
 		exit 255;
 	}
+}
+
+# make a number filled with commas
+sub addCommas {
+	my $theNumber = shift;
+	$theNumber = reverse $theNumber;
+	$theNumber =~ s<(\d\d\d)(?=\d)(?!\d*\.)><$1,>g;
+	return reverse $theNumber;
 }
 
 # the arrays, hashes, variables must be all-correct for this to
