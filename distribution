@@ -105,7 +105,8 @@ foreach my $arg (@ARGV) {
 	if ($arg =~ /^-+h(elp)*$/)               { doArgs(); exit 0; }
 	elsif ($arg =~ /^-+w(idth)*=(.+)$/)      { $widthArg = $2; }
 	elsif ($arg =~ /^-+h(eight)*=(.+)$/)     { $heightArg = $2; }
-	# can pass --graph without option
+	# can pass --graph without option, will default to value/key ordering
+        # since Unix prefers that for piping-to-sort reasons
 	elsif ($arg =~ /^-+g(raph)*=(.+)$/)      { $graphValues = $2; }
 	elsif ($arg =~ /^-+g(raph)*$/)           { $graphValues = 'vk'; }
 	elsif ($arg =~ /^-+b(uckets)*=(.+)$/)    { $maxBuckets = $2; }
@@ -113,13 +114,19 @@ foreach my $arg (@ARGV) {
 	elsif ($arg =~ /^-+c(har)*=(.+)$/)       { $histogramChar = $2; }
 	# ...--color doesn't.
 	elsif ($arg =~ /^-+c(olor)*$/)           { $colourisedOutput = 1; }
+        # never had much luck with the logarithmic graphs
 	elsif ($arg =~ /^-+l(ogarithmic)*$/)     { $logarithmic = 2; }
 	# can pass --numonly without option
 	elsif ($arg =~ /^-+n(umonly)$/)          { $numOnly = 'abs'; }
 	elsif ($arg =~ /^-+n(umonly)*=(.+)$/)    { $numOnly = $2; }
+        # palette is a comma-separated list of ANSI colour values
 	elsif ($arg =~ /^-+p(alette)*=(.+)$/)    { $colourPalette = $2; $colourisedOutput = 1; }
+        # size has somewhat complex override semantics including some
+        # non-obvious ones like if passing --numonly for example
 	elsif ($arg =~ /^-+s(ize)*=(.+)$/)       { $size = $2; }
+        # tokenize the input based on Perl regexp
 	elsif ($arg =~ /^-+t(okenize)*=(.+)$/)   { $tokenize = $2; }
+        # match tokens based on Perl regexp
 	elsif ($arg =~ /^-+m(atch)*=(.+)$/)      { $matchRegexp = $2; }
 	elsif ($arg =~ /^-+v(erbose)*$/)         { $verbose = 1; }
 	else { push (@extraArgs, $arg); }
@@ -174,7 +181,8 @@ elsif ($matchRegexp eq 'num')  { $matchRegexp = '^\d+$'; }
 if ($tokenize eq 'word')    { $tokenize = '[^\w]'; }
 elsif ($tokenize eq 'white')   { $tokenize = '\s'; }
 
-# set the size of the histogram
+# set the heigh/width of the histogram based on size input,
+# this is the lowest level of height/width priority
 if ($size =~ /^f/) {
 	$width = int (`tput cols` * 0.99);
 	if ($width < 80) { $width = 80; }
@@ -210,7 +218,7 @@ my $totalObjects = 0;
 my $graphVal = 0;
 my $maxVal = 0;
 
-# build the dict of input values in one of the three modes of operation
+# build the dict/map/hash of input values in one of the three modes of operation
 if ($numOnly) {
 	readNumerics();
 } elsif ($graphValues) {
@@ -226,20 +234,23 @@ my $totalKeys;
 my @sortedKeys;
 
 # if we're just graphing a bunch of numbers, no need to sort
-# the values dict
+# the values dict/map/hash
 if ($numOnly) {
 	# here we sort on KEYS not VALUES like other cases
 	@sortedKeys = sortKeysByKey();
 
-	# we graph everything we're given - throw away nothing!
+	# we graph everything we're given - throw away nothing! this overrides
+        # --height or --size options! it is the highest priority height directive
 	$height = $totalObjects;
 } else {
-	# build the sorted dict
+	# build the sorted dict/map/hash
 	@sortedKeys = sortKeysByValueFrequency();
 	$maxVal = $valuesDict->{$sortedKeys[0]};
 }
 
-# if there aren't height # of distinct values, use less
+# if there aren't height # of distinct values, choose the number
+# of values so the loop later on doesn't have to check for special
+# cases
 $totalKeys = scalar @sortedKeys;
 if ($totalKeys < $height) { $height = $totalKeys; }
 
@@ -291,6 +302,9 @@ for ($i = 0; $i < $height; $i++) {
 my $endTime = time() * 1000;
 my $totalMillis = sprintf ("%.2f", ($endTime - $startTime));
 
+# TODO: Collect stats on histogram keys, like how many times maxBuckets was
+# reached and pruned, and present them here. For now that seems complicated
+# for the end-user, so I'll wait until there's a feature request
 if ($verbose) {
 	print STDERR "tokens/lines examined: " . addCommas($totalObjects) . "    \n";
 	print STDERR " tokens/lines matched: " . addCommas($totalValues) . "\n";
@@ -298,6 +312,7 @@ if ($verbose) {
 	print STDERR "              runtime: ${totalMillis}ms\n";
 }
 
+# almost done now!
 outputGraph();
 
 exit 0;
@@ -359,7 +374,7 @@ sub readNumerics {
 	}
 }
 
-# read in lines and build hash object from it
+# read in lines and build dict/map/hash object from it
 sub readLinesBuildHash {
 	my $pruneObjects = 0;
 	while ($inLine = <STDIN>) {
@@ -392,8 +407,8 @@ sub readLinesBuildHash {
 	}
 }
 
-# here is the case where we don't need to put the input into
-# bins and tally - the data is pre-tallied for us
+# here is the case where we don't need to put the input into bins and tally -
+# the data is pre-tallied for us
 sub readPretalliedTokens {
 	while ($inLine = <STDIN>) {
 		chomp ($inLine);
@@ -429,12 +444,13 @@ sub checkValuesObjects {
 		} else {
 			print STDERR "No input! ";
 		}
-		print STDERR "No histogram for you.\n";
+		print STDERR "No histogram for you. Sorry?\n";
 		exit 255;
 	}
 }
 
-# make a number filled with commas
+# make a number filled with commas - humans hate to see a number like
+# 57106739592. It's really confusing.
 sub addCommas {
 	my $theNumber = shift;
 	$theNumber = reverse $theNumber;
@@ -442,8 +458,7 @@ sub addCommas {
 	return reverse $theNumber;
 }
 
-# the arrays, hashes, variables must be all-correct for this to
-# work, TODO: list out which ones they are, convert to functional
+# the following arrays, hashes, variables must be correct for this to work
 # keyText->[]  - list of the keys
 # pctText->[]  - list of the percents
 # ctText->[]   - list of the counts
