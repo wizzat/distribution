@@ -419,7 +419,7 @@ sub readPretalliedTokens {
 				if ($1 > $maxVal) { $maxVal = $1; }
 				$totalObjects++;
 			} else {
-				print STDERR " E Input line malformed and discarded: $inLine\n";
+				print STDERR " E Input malformed+discarded (perhaps pass -g=kv): $inLine\n";
 			}
 		} elsif ($graphValues eq 'kv') {
 			if ($inLine =~ /^(.+?)\s+(\d+)$/) {
@@ -428,7 +428,7 @@ sub readPretalliedTokens {
 				if ($2 > $maxVal) { $maxVal = $2; }
 				$totalObjects++;
 			} else {
-				print STDERR " E Input line malformed and discarded: $inLine\n";
+				print STDERR " E Input malformed+discarded (perhaps pass -g=vk): $inLine\n";
 			}
 		}
 	}
