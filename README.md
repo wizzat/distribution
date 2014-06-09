@@ -27,6 +27,13 @@ For the final case, there is another project: https://github.com/holman/spark th
 will produce simpler, more-compact graphs. This script will produce rather lengthy
 and verbose graphs with far more resolution, which you may prefer.
 
+The mapping between the use-cases above and the commandline options are:
+
+   0. Tokenize/match the input: --tokenize and --match.
+   1. Tokens are one-per-line: default behaviour. No commandline switches needed.
+   2. Tokens/Tallies (keys/values) one-per-line: --graph.
+   3. Tallies only (no tokens/keys/labels): --numonly.
+
 
 Features
 ========
