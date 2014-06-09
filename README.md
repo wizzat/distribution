@@ -90,35 +90,24 @@ delimiters, then only match words. The verbosity gives you some stats as it
 works and right before it prints the histogram.
 
 ```
-$ zcat /var/log/syslog*gz | awk '{print $5" "$6}' | head -5
-rsyslogd: [origin
-anacron[5657]: Job
-anacron[5657]: Can't
-anacron[5657]: Normal
-NetworkManager[1197]: SCPlugin-Ifupdown:
-
-----------------^ input--------v graphed------------------
-
 $ zcat /var/log/syslog*gz \
     | awk '{print $5" "$6}' \
     | distribution --tokenize=word --match=word --height=10 --verbose --char=o
- + Objects Processed: 124295.   
-tokens/lines examined: 124295
- tallied in histogram: 36711
-    histogram entries: 140
-              runtime: 109.03ms
-
-Val           |Ct (Pct)       Histogram
-kernel        |12112 (32.99%) ooooooooooooooooooooooooooooooooooooooooooooooooo
-NetworkManager|5695 (15.51%)  ooooooooooooooooooooooo
-info          |5371 (14.63%)  oooooooooooooooooooooo
-client        |1633 (4.45%)   ooooooo
-ovpn          |1633 (4.45%)   ooooooo
-daemon        |868 (2.36%)    oooo
-avahi         |853 (2.32%)    oooo
-dhclient      |736 (2.00%)    ooo
-Trying        |667 (1.82%)    ooo
-dnsmasq       |562 (1.53%)    ooo
+tokens/lines examined: 16,645    
+ tokens/lines matched: 5,843
+       histogram keys: 92
+              runtime: 10.75ms
+Val       |Ct (Pct)      Histogram
+ntop      |1818 (31.11%) ooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+WARNING   |1619 (27.71%) ooooooooooooooooooooooooooooooooooooooooooooooooo
+kernel    |1146 (19.61%) ooooooooooooooooooooooooooooooooooo
+CRON      |153 (2.62%)   ooooo
+root      |147 (2.52%)   ooooo
+message   |99 (1.69%)    ooo
+last      |99 (1.69%)    ooo
+ntpd      |99 (1.69%)    ooo
+dhclient  |88 (1.51%)    ooo
+THREADMGMT|52 (0.89%)    oo
 ```
 
 
@@ -166,11 +155,13 @@ session                 |12 (0.74%)  |||||||
 Graphing Pre-Tallied Tokens Example
 ===================================
 
-You can use very short versions of the options in case you don't like typing a
-lot. The default character is "+" because it creates a type of grid system
-which makes it easy for the eye to trace right/left or up/down. If the input is
-already just a list of values and keys, you can pass in the "--graph" (-g)
-option to graph the data without going through any parsing phase.
+Sometimes the output you have is already some keys with their counts. For
+example the output of "du" or "command | uniq -c". In these cases, use the
+--graph (-g) option, which skips the parsing and tokenizing of the input.
+
+Further, you can use very short versions of the options in case you don't like
+typing a lot. The default character is "+" because it creates a type of grid
+system which makes it easy for the eye to trace right/left or up/down.
 
 ```
 $ sudo du -sb /etc/* | distribution -w=90 -h=15 -g
@@ -198,18 +189,17 @@ Keys in Natural Order Examples
 
 The output is separated between STDOUT and STDERR so you can sort the resulting
 histogram by values. This is useful for time series or other cases where the
-keys you're graphing are in some natural order.
+keys you're graphing are in some natural order. Note how the "-v" output still
+appears at the top.
 
 ```
 $ cat NotServingRegionException-DateHour.txt \
     | distribution -v \
     | sort -n
- + Objects Processed: 1414196.   
-tokens/lines examined: 1414196
- tallied in histogram: 1414196
-    histogram entries: 453
+tokens/lines examined: 1,414,196    
+ tokens/lines matched: 1,414,196
+       histogram keys: 453
               runtime: 1279.30ms
-
 Val             |Ct (Pct)      Histogram
    2012-07-13 03|38360 (2.71%) ++++++++++++++++++++++++
    2012-07-28 21|18293 (1.29%) ++++++++++++
@@ -321,10 +311,9 @@ $ zcat mysql-slow.log.*.gz \
     | cut -c 9-17 \
     | ~/distribution --width=90 --verbose \
     | sort -n
-    Objects Processed: 30027    
-tokens/lines examined: 30027
- tallied in histogram: 30027
-    histogram entries: 964
+tokens/lines examined: 30,027    
+ tokens/lines matched: 30,027
+       histogram keys: 964
               runtime: 1224.58ms
 Val      |Ct (Pct)    Histogram
 120731 03|274 (0.91%) ++++++++++++++++++++++++++++++++++
@@ -374,10 +363,9 @@ $ head -90000 mysql-slow.log.20120710 \
     | awk '{print int($3 * 10)/10}' \
     | ~/distribution --verbose --height=30 --char='|o' \
     | sort -n
-    Objects Processed: 12269    
-tokens/lines examined: 12269
- tallied in histogram: 12269
-    histogram entries: 481
+tokens/lines examined: 12,269    
+ tokens/lines matched: 12,269
+       histogram keys: 481
               runtime: 12.53ms
 Val|Ct (Pct)     Histogram
 0  |1090 (8.88%) ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||o
