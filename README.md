@@ -442,7 +442,7 @@ RingtoneEP2.mp3|95 (0.86%)    +++
 ```
 
 Here we had pulled apart our access logs and put them in TSV format for input
-into Hive. The user agent string was in the 7th position. I wanted to just get an
+into Hive. The user agent string was in the 13th position. I wanted to just get an
 overall idea of what sort of user agents were coming to the site. I'm using the
 minimal argument size and my favorite "character" combo of "|o". I find it interesting
 that there were only 474 unique word-based tokens in the input. It's fairly obvious
