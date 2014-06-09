@@ -441,6 +441,44 @@ Poetry         |108 (0.97%)   +++
 RingtoneEP2.mp3|95 (0.86%)    +++
 ```
 
+Here we had pulled apart our access logs and put them in TSV format for input
+into Hive. The user agent string was in the 7th position. I wanted to just get an
+overall idea of what sort of user agents were coming to the site. I'm using the
+minimal argument size and my favorite "character" combo of "|o". I find it interesting
+that there were only 474 unique word-based tokens in the input. It's fairly obvious
+that a large percentage of the visitors come with mobile devices now.
+
+```
+$ zcat weblog-2014-05.tsv.gz \
+  | awk -F '\t' '{print $13}' \
+  | distribution -t=word -m=word -c='|o' -s=m -v
+tokens/lines examined: 28,062,913    
+ tokens/lines matched: 11,507,407
+       histogram keys: 474
+              runtime: 15659.97ms
+Val        |Ct (Pct)       Histogram
+Mozilla    |912852 (7.93%) ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||o
+like       |722945 (6.28%) |||||||||||||||||||||||||||||||||||||||||||||||||||||||||o
+OS         |611503 (5.31%) ||||||||||||||||||||||||||||||||||||||||||||||||o
+AppleWebKit|605618 (5.26%) |||||||||||||||||||||||||||||||||||||||||||||||o
+Gecko      |535620 (4.65%) ||||||||||||||||||||||||||||||||||||||||||o
+Windows    |484056 (4.21%) ||||||||||||||||||||||||||||||||||||||o
+NT         |483085 (4.20%) ||||||||||||||||||||||||||||||||||||||o
+KHTML      |356730 (3.10%) ||||||||||||||||||||||||||||o
+Safari     |355400 (3.09%) ||||||||||||||||||||||||||||o
+X          |347033 (3.02%) |||||||||||||||||||||||||||o
+Mac        |344205 (2.99%) |||||||||||||||||||||||||||o
+appversion |300816 (2.61%) |||||||||||||||||||||||o
+Type       |299085 (2.60%) |||||||||||||||||||||||o
+Connection |299085 (2.60%) |||||||||||||||||||||||o
+Mobile     |282759 (2.46%) ||||||||||||||||||||||o
+CPU        |266837 (2.32%) |||||||||||||||||||||o
+NET        |247418 (2.15%) |||||||||||||||||||o
+CLR        |247418 (2.15%) |||||||||||||||||||o
+Aspect     |242566 (2.11%) |||||||||||||||||||o
+Ratio      |242566 (2.11%) |||||||||||||||||||o
+```
+
 
 Graphing a Series of Numbers Example
 ====================================
