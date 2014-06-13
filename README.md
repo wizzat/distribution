@@ -445,7 +445,7 @@ Here we had pulled apart our access logs and put them in TSV format for input
 into Hive. The user agent string was in the 13th position. I wanted to just get an
 overall idea of what sort of user agents were coming to the site. I'm using the
 minimal argument size and my favorite "character" combo of "|o". I find it interesting
-that there were only 474 unique word-based tokens in the input. It's fairly obvious
+that there were only 474 unique word-based tokens in the input. Also, it's clear
 that a large percentage of the visitors come with mobile devices now.
 
 ```
@@ -508,6 +508,38 @@ xh                           |52349 (0.17%)     +
 xi                           |37002 (0.12%)     +
 xj                           |36651 (0.12%)     +
 xk                           |32860 (0.10%)     +
+```
+
+This seems a really good time to use the --logarithmic option, since that top referrer
+is causing a loss of resolution on the following ones! I'll re-run this for one month.
+
+```
+$ cat referrers-201402* | distribution -v -g=kv -s=m -l
+tokens/lines examined: 23,517    
+ tokens/lines matched: 5,908,765 
+       histogram keys: 5,888
+              runtime: 78.28ms
+Val                          |Ct (Pct)         Histogram
+x1                           |4471708 (75.68%) +++++++++++++++++++++++++++++++++++++++++++++++++++++
+x2                           |670703 (11.35%)  ++++++++++++++++++++++++++++++++++++++++++++++
+x3                           |203489 (3.44%)   ++++++++++++++++++++++++++++++++++++++++++
+x4                           |43751 (0.74%)    +++++++++++++++++++++++++++++++++++++
+x5                           |36211 (0.61%)    ++++++++++++++++++++++++++++++++++++
+x6                           |34589 (0.59%)    ++++++++++++++++++++++++++++++++++++
+x7                           |31279 (0.53%)    ++++++++++++++++++++++++++++++++++++
+x8                           |29596 (0.50%)    +++++++++++++++++++++++++++++++++++
+x9                           |23125 (0.39%)    +++++++++++++++++++++++++++++++++++
+xa                           |21429 (0.36%)    ++++++++++++++++++++++++++++++++++
+xb                           |19670 (0.33%)    ++++++++++++++++++++++++++++++++++
+xc                           |19057 (0.32%)    ++++++++++++++++++++++++++++++++++
+xd                           |18945 (0.32%)    ++++++++++++++++++++++++++++++++++
+xe                           |18936 (0.32%)    ++++++++++++++++++++++++++++++++++
+xf                           |16015 (0.27%)    +++++++++++++++++++++++++++++++++
+xg                           |13115 (0.22%)    +++++++++++++++++++++++++++++++++
+xh                           |12067 (0.20%)    ++++++++++++++++++++++++++++++++
+xi                           |8485 (0.14%)     +++++++++++++++++++++++++++++++
+xj                           |7694 (0.13%)     +++++++++++++++++++++++++++++++
+xk                           |7199 (0.12%)     +++++++++++++++++++++++++++++++
 ```
 
 Graphing a Series of Numbers Example
