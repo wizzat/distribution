@@ -479,6 +479,36 @@ Aspect     |242566 (2.11%) |||||||||||||||||||o
 Ratio      |242566 (2.11%) |||||||||||||||||||o
 ```
 
+And here we had a list of referrers in "referrer [count]" format. They were done one per day, but I wanted a count for January through September, so I used a shell glob to specify all those files for my 'cat'. Distribution will notice that it's getting the same key as previously and just add the new value, so the key "x1" can come in many times and we'll get the aggregate in the output. The referrers have been anonymized here since they are very specific to the company.
+
+```
+$ cat referrers-20140* | distribution -v -g=kv -s=m
+tokens/lines examined: 133,564    
+ tokens/lines matched: 31,498,986
+       histogram keys: 14,882
+              runtime: 453.45ms
+Val                          |Ct (Pct)          Histogram
+x1                           |24313595 (77.19%) ++++++++++++++++++++++++++++++++++++++++++++++++++++
+x2                           |3430278 (10.89%)  ++++++++
+x3                           |1049996 (3.33%)   +++
+x4                           |210083 (0.67%)    +
+x5                           |179554 (0.57%)    +
+x6                           |163158 (0.52%)    +
+x7                           |129997 (0.41%)    +
+x8                           |122725 (0.39%)    +
+x9                           |120487 (0.38%)    +
+xa                           |109085 (0.35%)    +
+xb                           |99956 (0.32%)     +
+xc                           |92208 (0.29%)     +
+xd                           |90017 (0.29%)     +
+xe                           |79416 (0.25%)     +
+xf                           |70094 (0.22%)     +
+xg                           |58089 (0.18%)     +
+xh                           |52349 (0.17%)     +
+xi                           |37002 (0.12%)     +
+xj                           |36651 (0.12%)     +
+xk                           |32860 (0.10%)     +
+```
 
 Graphing a Series of Numbers Example
 ====================================
