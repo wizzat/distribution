@@ -49,6 +49,7 @@ Options
 =======
 
 ```
+  --keys=K       periodically prune hash to K keys (default 4000)
   --char=C       character(s) to use for histogram character, some substitutions follow:
         ba       (▬) Bar
         bl       (Ξ) Building
