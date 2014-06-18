@@ -441,6 +441,106 @@ Poetry         |108 (0.97%)   +++
 RingtoneEP2.mp3|95 (0.86%)    +++
 ```
 
+Here we had pulled apart our access logs and put them in TSV format for input
+into Hive. The user agent string was in the 13th position. I wanted to just get an
+overall idea of what sort of user agents were coming to the site. I'm using the
+minimal argument size and my favorite "character" combo of "|o". I find it interesting
+that there were only 474 unique word-based tokens in the input. Also, it's clear
+that a large percentage of the visitors come with mobile devices now.
+
+```
+$ zcat weblog-2014-05.tsv.gz \
+  | awk -F '\t' '{print $13}' \
+  | distribution -t=word -m=word -c='|o' -s=m -v
+tokens/lines examined: 28,062,913    
+ tokens/lines matched: 11,507,407
+       histogram keys: 474
+              runtime: 15659.97ms
+Val        |Ct (Pct)       Histogram
+Mozilla    |912852 (7.93%) ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||o
+like       |722945 (6.28%) |||||||||||||||||||||||||||||||||||||||||||||||||||||||||o
+OS         |611503 (5.31%) ||||||||||||||||||||||||||||||||||||||||||||||||o
+AppleWebKit|605618 (5.26%) |||||||||||||||||||||||||||||||||||||||||||||||o
+Gecko      |535620 (4.65%) ||||||||||||||||||||||||||||||||||||||||||o
+Windows    |484056 (4.21%) ||||||||||||||||||||||||||||||||||||||o
+NT         |483085 (4.20%) ||||||||||||||||||||||||||||||||||||||o
+KHTML      |356730 (3.10%) ||||||||||||||||||||||||||||o
+Safari     |355400 (3.09%) ||||||||||||||||||||||||||||o
+X          |347033 (3.02%) |||||||||||||||||||||||||||o
+Mac        |344205 (2.99%) |||||||||||||||||||||||||||o
+appversion |300816 (2.61%) |||||||||||||||||||||||o
+Type       |299085 (2.60%) |||||||||||||||||||||||o
+Connection |299085 (2.60%) |||||||||||||||||||||||o
+Mobile     |282759 (2.46%) ||||||||||||||||||||||o
+CPU        |266837 (2.32%) |||||||||||||||||||||o
+NET        |247418 (2.15%) |||||||||||||||||||o
+CLR        |247418 (2.15%) |||||||||||||||||||o
+Aspect     |242566 (2.11%) |||||||||||||||||||o
+Ratio      |242566 (2.11%) |||||||||||||||||||o
+```
+
+And here we had a list of referrers in "referrer [count]" format. They were done one per day, but I wanted a count for January through September, so I used a shell glob to specify all those files for my 'cat'. Distribution will notice that it's getting the same key as previously and just add the new value, so the key "x1" can come in many times and we'll get the aggregate in the output. The referrers have been anonymized here since they are very specific to the company.
+
+```
+$ cat referrers-20140* | distribution -v -g=kv -s=m
+tokens/lines examined: 133,564    
+ tokens/lines matched: 31,498,986
+       histogram keys: 14,882
+              runtime: 453.45ms
+Val                          |Ct (Pct)          Histogram
+x1                           |24313595 (77.19%) ++++++++++++++++++++++++++++++++++++++++++++++++++++
+x2                           |3430278 (10.89%)  ++++++++
+x3                           |1049996 (3.33%)   +++
+x4                           |210083 (0.67%)    +
+x5                           |179554 (0.57%)    +
+x6                           |163158 (0.52%)    +
+x7                           |129997 (0.41%)    +
+x8                           |122725 (0.39%)    +
+x9                           |120487 (0.38%)    +
+xa                           |109085 (0.35%)    +
+xb                           |99956 (0.32%)     +
+xc                           |92208 (0.29%)     +
+xd                           |90017 (0.29%)     +
+xe                           |79416 (0.25%)     +
+xf                           |70094 (0.22%)     +
+xg                           |58089 (0.18%)     +
+xh                           |52349 (0.17%)     +
+xi                           |37002 (0.12%)     +
+xj                           |36651 (0.12%)     +
+xk                           |32860 (0.10%)     +
+```
+
+This seems a really good time to use the --logarithmic option, since that top referrer
+is causing a loss of resolution on the following ones! I'll re-run this for one month.
+
+```
+$ cat referrers-201402* | distribution -v -g=kv -s=m -l
+tokens/lines examined: 23,517    
+ tokens/lines matched: 5,908,765 
+       histogram keys: 5,888
+              runtime: 78.28ms
+Val                          |Ct (Pct)         Histogram
+x1                           |4471708 (75.68%) +++++++++++++++++++++++++++++++++++++++++++++++++++++
+x2                           |670703 (11.35%)  ++++++++++++++++++++++++++++++++++++++++++++++
+x3                           |203489 (3.44%)   ++++++++++++++++++++++++++++++++++++++++++
+x4                           |43751 (0.74%)    +++++++++++++++++++++++++++++++++++++
+x5                           |36211 (0.61%)    ++++++++++++++++++++++++++++++++++++
+x6                           |34589 (0.59%)    ++++++++++++++++++++++++++++++++++++
+x7                           |31279 (0.53%)    ++++++++++++++++++++++++++++++++++++
+x8                           |29596 (0.50%)    +++++++++++++++++++++++++++++++++++
+x9                           |23125 (0.39%)    +++++++++++++++++++++++++++++++++++
+xa                           |21429 (0.36%)    ++++++++++++++++++++++++++++++++++
+xb                           |19670 (0.33%)    ++++++++++++++++++++++++++++++++++
+xc                           |19057 (0.32%)    ++++++++++++++++++++++++++++++++++
+xd                           |18945 (0.32%)    ++++++++++++++++++++++++++++++++++
+xe                           |18936 (0.32%)    ++++++++++++++++++++++++++++++++++
+xf                           |16015 (0.27%)    +++++++++++++++++++++++++++++++++
+xg                           |13115 (0.22%)    +++++++++++++++++++++++++++++++++
+xh                           |12067 (0.20%)    ++++++++++++++++++++++++++++++++
+xi                           |8485 (0.14%)     +++++++++++++++++++++++++++++++
+xj                           |7694 (0.13%)     +++++++++++++++++++++++++++++++
+xk                           |7199 (0.12%)     +++++++++++++++++++++++++++++++
+```
 
 Graphing a Series of Numbers Example
 ====================================
