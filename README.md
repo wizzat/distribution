@@ -1,7 +1,7 @@
 distribution
 ============
 
-Short, simple, direct scripts for creating character-based histograms in a
+Short, simple, direct scripts for creating character-based graphs in a
 command terminal. Status: stable. Features added very rarely.
 
 ![diagram](https://raw.github.com/philovivero/distribution/master/screenshot.png?raw=true)
@@ -10,8 +10,12 @@ command terminal. Status: stable. Features added very rarely.
 Purpose
 =======
 
-These scripts are to generate a graphical histogram from the terminal, directly
-in the terminal. At first, there will be only one script, the original written
+To generate graphs directly in the (ASCII-based) terminal. The tool is
+mis-named. It was originally for generating histograms (a distribution
+of the frequency of input tokens) but it has since been expanded to generate
+time-series graphs (or, in fact, graphs with any arbitrary "x-axis") as well.
+
+At first, there will be only one script, the original written
 in Perl by Tim Ellis. But if others port it to Python, Ocaml, COBOL, or
 Brainfuck, then we'll include those versions here.
 
