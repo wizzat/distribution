@@ -10,8 +10,12 @@ command terminal. Status: stable. Features added very rarely.
 Purpose
 =======
 
-To generate graphs directly in the (ASCII-based) terminal. The tool is
-mis-named. It was originally for generating histograms (a distribution
+To generate graphs directly in the (ASCII-based) terminal. Most common use-case:
+if you type `long | list | of | commands | sort | uniq -c | sort -rn` in the terminal,
+then you could replace the final `| sort | uniq -c | sort -rn` with `| distribution` and
+very likely be happier with what you see.
+
+The tool is mis-named. It was originally for generating histograms (a distribution
 of the frequency of input tokens) but it has since been expanded to generate
 time-series graphs (or, in fact, graphs with any arbitrary "x-axis") as well.
 
