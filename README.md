@@ -1,7 +1,7 @@
 distribution
 ============
 
-Short, simple, direct scripts for creating character-based histograms in a
+Short, simple, direct scripts for creating character-based graphs in a
 command terminal. Status: stable. Features added very rarely.
 
 ![diagram](https://raw.github.com/philovivero/distribution/master/screenshot.png?raw=true)
@@ -10,8 +10,16 @@ command terminal. Status: stable. Features added very rarely.
 Purpose
 =======
 
-These scripts are to generate a graphical histogram from the terminal, directly
-in the terminal. At first, there will be only one script, the original written
+To generate graphs directly in the (ASCII-based) terminal. Most common use-case:
+if you type `long | list | of | commands | sort | uniq -c | sort -rn` in the terminal,
+then you could replace the final `| sort | uniq -c | sort -rn` with `| distribution` and
+very likely be happier with what you see.
+
+The tool is mis-named. It was originally for generating histograms (a distribution
+of the frequency of input tokens) but it has since been expanded to generate
+time-series graphs (or, in fact, graphs with any arbitrary "x-axis") as well.
+
+At first, there will be only one script, the original written
 in Perl by Tim Ellis. But if others port it to Python, Ocaml, COBOL, or
 Brainfuck, then we'll include those versions here.
 
@@ -49,6 +57,7 @@ Options
 =======
 
 ```
+  --keys=K       periodically prune hash to K keys (default 4000)
   --char=C       character(s) to use for histogram character, some substitutions follow:
         ba       (▬) Bar
         bl       (Ξ) Building
@@ -445,7 +454,7 @@ Here we had pulled apart our access logs and put them in TSV format for input
 into Hive. The user agent string was in the 13th position. I wanted to just get an
 overall idea of what sort of user agents were coming to the site. I'm using the
 minimal argument size and my favorite "character" combo of "|o". I find it interesting
-that there were only 474 unique word-based tokens in the input. It's fairly obvious
+that there were only 474 unique word-based tokens in the input. Also, it's clear
 that a large percentage of the visitors come with mobile devices now.
 
 ```
@@ -479,6 +488,68 @@ Aspect     |242566 (2.11%) |||||||||||||||||||o
 Ratio      |242566 (2.11%) |||||||||||||||||||o
 ```
 
+And here we had a list of referrers in "referrer [count]" format. They were done one per day, but I wanted a count for January through September, so I used a shell glob to specify all those files for my 'cat'. Distribution will notice that it's getting the same key as previously and just add the new value, so the key "x1" can come in many times and we'll get the aggregate in the output. The referrers have been anonymized here since they are very specific to the company.
+
+```
+$ cat referrers-20140* | distribution -v -g=kv -s=m
+tokens/lines examined: 133,564    
+ tokens/lines matched: 31,498,986
+       histogram keys: 14,882
+              runtime: 453.45ms
+Val                          |Ct (Pct)          Histogram
+x1                           |24313595 (77.19%) ++++++++++++++++++++++++++++++++++++++++++++++++++++
+x2                           |3430278 (10.89%)  ++++++++
+x3                           |1049996 (3.33%)   +++
+x4                           |210083 (0.67%)    +
+x5                           |179554 (0.57%)    +
+x6                           |163158 (0.52%)    +
+x7                           |129997 (0.41%)    +
+x8                           |122725 (0.39%)    +
+x9                           |120487 (0.38%)    +
+xa                           |109085 (0.35%)    +
+xb                           |99956 (0.32%)     +
+xc                           |92208 (0.29%)     +
+xd                           |90017 (0.29%)     +
+xe                           |79416 (0.25%)     +
+xf                           |70094 (0.22%)     +
+xg                           |58089 (0.18%)     +
+xh                           |52349 (0.17%)     +
+xi                           |37002 (0.12%)     +
+xj                           |36651 (0.12%)     +
+xk                           |32860 (0.10%)     +
+```
+
+This seems a really good time to use the --logarithmic option, since that top referrer
+is causing a loss of resolution on the following ones! I'll re-run this for one month.
+
+```
+$ cat referrers-201402* | distribution -v -g=kv -s=m -l
+tokens/lines examined: 23,517    
+ tokens/lines matched: 5,908,765 
+       histogram keys: 5,888
+              runtime: 78.28ms
+Val                          |Ct (Pct)         Histogram
+x1                           |4471708 (75.68%) +++++++++++++++++++++++++++++++++++++++++++++++++++++
+x2                           |670703 (11.35%)  ++++++++++++++++++++++++++++++++++++++++++++++
+x3                           |203489 (3.44%)   ++++++++++++++++++++++++++++++++++++++++++
+x4                           |43751 (0.74%)    +++++++++++++++++++++++++++++++++++++
+x5                           |36211 (0.61%)    ++++++++++++++++++++++++++++++++++++
+x6                           |34589 (0.59%)    ++++++++++++++++++++++++++++++++++++
+x7                           |31279 (0.53%)    ++++++++++++++++++++++++++++++++++++
+x8                           |29596 (0.50%)    +++++++++++++++++++++++++++++++++++
+x9                           |23125 (0.39%)    +++++++++++++++++++++++++++++++++++
+xa                           |21429 (0.36%)    ++++++++++++++++++++++++++++++++++
+xb                           |19670 (0.33%)    ++++++++++++++++++++++++++++++++++
+xc                           |19057 (0.32%)    ++++++++++++++++++++++++++++++++++
+xd                           |18945 (0.32%)    ++++++++++++++++++++++++++++++++++
+xe                           |18936 (0.32%)    ++++++++++++++++++++++++++++++++++
+xf                           |16015 (0.27%)    +++++++++++++++++++++++++++++++++
+xg                           |13115 (0.22%)    +++++++++++++++++++++++++++++++++
+xh                           |12067 (0.20%)    ++++++++++++++++++++++++++++++++
+xi                           |8485 (0.14%)     +++++++++++++++++++++++++++++++
+xj                           |7694 (0.13%)     +++++++++++++++++++++++++++++++
+xk                           |7199 (0.12%)     +++++++++++++++++++++++++++++++
+```
 
 Graphing a Series of Numbers Example
 ====================================
