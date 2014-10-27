@@ -17,7 +17,7 @@ with
 and very likely be happier with what you see.
 """
 
-import re,sys
+import re,sys,time
 
 class Histogram:
 	"""
@@ -25,26 +25,36 @@ class Histogram:
 	through it, printing a histogram for each of the highest height
 	entries
 	"""
-	def __init__(self, maxVal):
-		self.maxVal = maxVal
+	def __init__(self):
+		pass
 
 	def writeHist(self, s, tokenDict):
-		self.tokenDict = tokenDict
 		maxTokenLen = 0
 		outputDict = {}
 
+		totalKeys = len (tokenDict)
 		numItems = 0
-		for k in sorted(self.tokenDict, key=self.tokenDict.get, reverse=True):
+		maxVal = 0
+		for k in sorted(tokenDict, key=tokenDict.get, reverse=True):
 			if k != '':
 				outputDict[k] = tokenDict[k]
 				if len(k) > maxTokenLen: maxTokenLen = len(k)
+				if outputDict[k] > maxVal: maxVal = outputDict[k]
 				numItems += 1
 				if numItems >= s.height:
 					break
 
 		# we always output a single histogram char at the end, so
 		# we output one less than actual number here
-		histWidth = s.width - maxTokenLen - 1 - 9 - 6
+		histWidth = s.width - maxTokenLen - 2 - 6 - 9
+
+		s.endTime = int (time.time() * 1000)
+		totalMillis = s.endTime - s.startTime
+		if s.verbose == True:
+			sys.stderr.write ("tokens/lines examined: %d" % (s.totalObjects) + "\n")
+			sys.stderr.write (" tokens/lines matched: %d" % (s.totalValues) + "\n")
+			sys.stderr.write ("       histogram keys: %d" % (totalKeys) + "\n")
+			sys.stderr.write ("              runtime: %dms" % (totalMillis) + "\n")
 
 		for k in sorted(outputDict, key=outputDict.get, reverse=True):
 			if k != '':
@@ -52,11 +62,11 @@ class Histogram:
 				sys.stdout.write (k.rjust(maxTokenLen) + " ")
 				sys.stdout.write (s.ctColour)
 				sys.stdout.write ("%5s " % outputDict[k])
-				pct = "(%2.2f%%)" % (outputDict[k] * 1.0 / self.maxVal * 100)
+				pct = "(%2.2f%%)" % (outputDict[k] * 1.0 / s.totalObjects * 100)
 				sys.stdout.write (s.pctColour)
 				sys.stdout.write ("%8s " % pct)
 				sys.stdout.write (s.graphColour)
-				sys.stdout.write (s.histogramChar[0] * int (outputDict[k] * 1.0 / self.maxVal * histWidth))
+				sys.stdout.write (s.histogramChar[0] * (int (outputDict[k] * 1.0 / maxVal * histWidth) - 1))
 				if len (s.histogramChar) > 1:
 					sys.stdout.write (s.histogramChar[1])
 				else:
@@ -74,7 +84,7 @@ class InputReader:
 		self.maxVal = 0
 		self.maxTokenLen = 0
 
-	def tokenizeInput (self):
+	def tokenizeInput (self, s):
 		for line in sys.stdin:
 			for token in re.split(r'\s+', line):
 				try:
@@ -84,9 +94,14 @@ class InputReader:
 
 				if self.tokenDict[token] > self.maxVal: self.maxVal = self.tokenDict[token]
 				if len(token) > self.maxTokenLen: self.maxTokenLen = len(token)
+				s.totalObjects += 1
+				s.totalValues += 1
 
 class Settings:
 	def __init__(self):
+		self.totalMillis = 0
+		self.startTime = int (time.time() * 1000)
+		self.endTime = 0
 		self.widthArg = 0
 		self.heightArg = 0
 		self.width = 80
@@ -95,7 +110,7 @@ class Settings:
 		self.colourisedOutput = False
 		self.logarithmic = True
 		self.numOnly = ''
-		self.verbose = True
+		self.verbose = False
 		maxKeys = 4000
 		self.graphValues = ''
 		self.colourPalette = '0,0,32,35,34'
@@ -107,6 +122,8 @@ class Settings:
 		self.ctColour = ""
 		self.pctColour = ""
 		self.graphColour = ""
+		self.totalObjects = 0
+		self.totalValues = 0
 
 		# manual argument parsing easier than getopts IMO
 		for arg in sys.argv:
@@ -217,8 +234,8 @@ def doUsage():
 def main (argv):
 	s = Settings()
 	i = InputReader()
-	i.tokenizeInput()
-	h = Histogram (i.maxVal)
+	i.tokenizeInput(s)
+	h = Histogram ()
 	h.writeHist(s, i.tokenDict)
 
 scriptName = sys.argv[0]
