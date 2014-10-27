@@ -19,7 +19,7 @@ and very likely be happier with what you see.
 
 import re,sys,time
 
-class Histogram:
+class Histogram (object):
 	"""
 	Takes the tokenDict built in the InputReader class and goes
 	through it, printing a histogram for each of the highest height
@@ -28,7 +28,7 @@ class Histogram:
 	def __init__(self):
 		pass
 
-	def writeHist(self, s, tokenDict):
+	def write_hist (self, s, tokenDict):
 		maxTokenLen = 0
 		outputDict = {}
 
@@ -74,30 +74,34 @@ class Histogram:
 				sys.stdout.write (s.regularColour)
 				sys.stdout.write ("\n")
 
-class InputReader:
+class InputReader (object):
 	"""
 	Reads stdin, parses it into a dictionary of key and value is number
 	of appearances of that key in the input
 	"""
 	def __init__(self):
 		self.tokenDict = {}
-		self.maxVal = 0
-		self.maxTokenLen = 0
 
-	def tokenizeInput (self, s):
+	def tokenize_input (self, s):
 		for line in sys.stdin:
-			for token in re.split(r'\s+', line):
+			reSplitExp = r'\s+'
+			if s.tokenize == 'white':
+				reSplitExp = r'\s+'
+			elif s.tokenize == 'word':
+				reSplitExp = r'\W'
+			elif s.tokenize != '':
+				reSplitExp = s.tokenize
+
+			for token in re.split(reSplitExp, line):
 				try:
 					self.tokenDict[token] += 1
 				except:
 					self.tokenDict[token] = 1
 
-				if self.tokenDict[token] > self.maxVal: self.maxVal = self.tokenDict[token]
-				if len(token) > self.maxTokenLen: self.maxTokenLen = len(token)
 				s.totalObjects += 1
 				s.totalValues += 1
 
-class Settings:
+class Settings (object):
 	def __init__(self):
 		self.totalMillis = 0
 		self.startTime = int (time.time() * 1000)
@@ -234,9 +238,9 @@ def doUsage():
 def main (argv):
 	s = Settings()
 	i = InputReader()
-	i.tokenizeInput(s)
+	i.tokenize_input (s)
 	h = Histogram ()
-	h.writeHist(s, i.tokenDict)
+	h.write_hist (s, i.tokenDict)
 
 scriptName = sys.argv[0]
 if __name__ == "__main__":
