@@ -105,28 +105,27 @@ foreach my $arg (@ARGV) {
 	if ($arg =~ /^-+h(elp)*$/)               { doArgs(); exit 0; }
 	elsif ($arg =~ /^-+w(idth)*=(.+)$/)      { $widthArg = $2; }
 	elsif ($arg =~ /^-+h(eight)*=(.+)$/)     { $heightArg = $2; }
-	# can pass --graph without option, will default to value/key ordering
-        # since Unix prefers that for piping-to-sort reasons
-	elsif ($arg =~ /^-+g(raph)*=(.+)$/)      { $graphValues = $2; }
-	elsif ($arg =~ /^-+g(raph)*$/)           { $graphValues = 'vk'; }
 	elsif ($arg =~ /^-+b(uckets)*=(.+)$/)    { $maxBuckets = $2; }
 	# --char takes option...
 	elsif ($arg =~ /^-+c(har)*=(.+)$/)       { $histogramChar = $2; }
 	# ...--color doesn't.
 	elsif ($arg =~ /^-+c(olor)*$/)           { $colourisedOutput = 1; }
-        # never had much luck with the logarithmic graphs
+	# can pass --graph without option, will default to value/key ordering
+	# since Unix prefers that for piping-to-sort reasons
+	elsif ($arg =~ /^-+g(raph)*=(.+)$/)      { $graphValues = $2; }
+	elsif ($arg =~ /^-+g(raph)*$/)           { $graphValues = 'vk'; }
 	elsif ($arg =~ /^-+l(ogarithmic)*$/)     { $logarithmic = 2; }
 	# can pass --numonly without option
 	elsif ($arg =~ /^-+n(umonly)$/)          { $numOnly = 'abs'; }
 	elsif ($arg =~ /^-+n(umonly)*=(.+)$/)    { $numOnly = $2; }
-        # palette is a comma-separated list of ANSI colour values
+	# palette is a comma-separated list of ANSI colour values
 	elsif ($arg =~ /^-+p(alette)*=(.+)$/)    { $colourPalette = $2; $colourisedOutput = 1; }
-        # size has somewhat complex override semantics including some
-        # non-obvious ones like if passing --numonly for example
+	# size has somewhat complex override semantics including some
+	# non-obvious ones like if passing --numonly for example
 	elsif ($arg =~ /^-+s(ize)*=(.+)$/)       { $size = $2; }
-        # tokenize the input based on Perl regexp
+	# tokenize the input based on Perl regexp
 	elsif ($arg =~ /^-+t(okenize)*=(.+)$/)   { $tokenize = $2; }
-        # match tokens based on Perl regexp
+	# match tokens based on Perl regexp
 	elsif ($arg =~ /^-+m(atch)*=(.+)$/)      { $matchRegexp = $2; }
 	elsif ($arg =~ /^-+v(erbose)*$/)         { $verbose = 1; }
 	else { push (@extraArgs, $arg); }
@@ -450,7 +449,7 @@ sub checkValuesObjects {
 }
 
 # make a number filled with commas - humans hate to see a number like
-# 57106739592. It's really confusing.
+# 18008675309. is that 180M or 1.8B? look again. 18B.
 sub addCommas {
 	my $theNumber = shift;
 	$theNumber = reverse $theNumber;
