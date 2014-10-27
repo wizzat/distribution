@@ -19,9 +19,9 @@ The tool is mis-named. It was originally for generating histograms (a distributi
 of the frequency of input tokens) but it has since been expanded to generate
 time-series graphs (or, in fact, graphs with any arbitrary "x-axis") as well.
 
-At first, there will be only one script, the original written
-in Perl by Tim Ellis. But if others port it to Python, Ocaml, COBOL, or
-Brainfuck, then we'll include those versions here.
+At first, there will be only two scripts, the originals written in Perl and
+Python by Tim Ellis. But if others port it to Ocaml, COBOL, or Brainfuck, then
+we'll include those versions here.
 
 There are a few typical use cases for graphs in a terminal:
 
@@ -620,8 +620,8 @@ are some things that need to be done.
 Porting
 =======
 
-Perl is fairly common, but I'm not sure 100% of systems out there have it. A
-Python and C/C++ port would be most welcome.
+Perl and Python are fairly common, but I'm not sure 100% of systems out there
+have them. A C/C++ port would be most welcome.
 
 If you write a port, send me a pull request so I can include it in this repo.
 
@@ -634,7 +634,6 @@ but more-efficient methods are welcome.
 I imagine, in order of nice-to-haveness:
 
  * C or C++
- * Python
  * Java
  * Ruby
  * Lisp
