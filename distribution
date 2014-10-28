@@ -52,8 +52,8 @@ my $widthArg = 0;
 my $heightArg = 0;
 my $logarithmic = 0;
 # every keyPruneInterval keys, prune the hash to maxKeys top keys
-my $keyPruneInterval = 80000;
-my $maxKeys = 4000;
+my $keyPruneInterval = 120000;
+my $maxKeys = 5000;
 my $numOnly = '';
 # character for ease of eye to scan left/right/up/down
 my $histogramChar = "+";
@@ -206,8 +206,9 @@ if ($heightArg) { $height = $heightArg; }
 
 # maxKeys should be at least a few thousand greater than height to reduce odds
 # of throwing away high-count values that appear sparingly in the data
-if ($maxKeys < $height + 4000) {
-	$maxKeys = $height + 4000;
+if ($maxKeys < $height + 3000) {
+	$maxKeys = $height + 3000;
+	print STDERR "Updated maxKeys to $maxKeys (height + 3000)\n";
 }
 
 my $nextStat = time() + $statInterval;

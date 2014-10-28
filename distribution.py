@@ -17,7 +17,7 @@ with
 and very likely be happier with what you see.
 """
 
-import re,sys,time
+import math,os,re,sys,time
 
 class Histogram(object):
 	"""
@@ -32,17 +32,19 @@ class Histogram(object):
 		maxTokenLen = 0
 		outputDict = {}
 
-		totalKeys = len(tokenDict)
 		numItems = 0
 		maxVal = 0
 		for k in sorted(tokenDict, key=tokenDict.get, reverse=True):
-			if k != '':
+			if k:
 				outputDict[k] = tokenDict[k]
 				if len(k) > maxTokenLen: maxTokenLen = len(k)
 				if outputDict[k] > maxVal: maxVal = outputDict[k]
 				numItems += 1
 				if numItems >= s.height:
 					break
+
+		# grab log of maxVal in case logarithmic graphs
+		if s.logarithmic: maxLog = math.log(maxVal)
 
 		# we always output a single histogram char at the end, so
 		# we output one less than actual number here
@@ -53,11 +55,11 @@ class Histogram(object):
 		if s.verbose == True:
 			sys.stderr.write("tokens/lines examined: %d" % (s.totalObjects) + "\n")
 			sys.stderr.write(" tokens/lines matched: %d" % (s.totalValues) + "\n")
-			sys.stderr.write("       histogram keys: %d" % (totalKeys) + "\n")
+			sys.stderr.write("       histogram keys: %d" % (len(tokenDict)) + "\n")
 			sys.stderr.write("              runtime: %dms" % (totalMillis) + "\n")
 
 		for k in sorted(outputDict, key=outputDict.get, reverse=True):
-			if k != '':
+			if k:
 				sys.stdout.write(s.keyColour)
 				sys.stdout.write(k.rjust(maxTokenLen) + " ")
 				sys.stdout.write(s.ctColour)
@@ -66,7 +68,12 @@ class Histogram(object):
 				sys.stdout.write(s.pctColour)
 				sys.stdout.write("%8s " % pct)
 				sys.stdout.write(s.graphColour)
-				sys.stdout.write(s.histogramChar[0] * (int(outputDict[k] * 1.0 / maxVal * histWidth) - 1))
+
+				if s.logarithmic:
+					sys.stdout.write(s.histogramChar[0] * (int(math.log(outputDict[k]) / maxLog * histWidth) - 1))
+				else:
+					sys.stdout.write(s.histogramChar[0] * (int(outputDict[k] * 1.0 / maxVal * histWidth) - 1))
+
 				if len(s.histogramChar) > 1:
 					sys.stdout.write(s.histogramChar[1])
 				else:
@@ -84,24 +91,55 @@ class InputReader(object):
 	def __init__(self):
 		self.tokenDict = {}
 
+	def prune_keys(self, s):
+		newDict = {}
+		numKeysTransferred = 0
+		for k in sorted(self.tokenDict, key=self.tokenDict.get, reverse=True):
+			if k:
+				newDict[k] = self.tokenDict[k]
+				numKeysTransferred += 1
+				if numKeysTransferred > s.maxKeys:
+					break
+		self.tokenDict = newDict
+
 	def tokenize_input(self, s):
-		for line in sys.stdin:
+		pruneObjects = 0
+
+		# how to split the input...
+		reSplitExp = r'\s+'
+		if s.tokenize == 'white':
 			reSplitExp = r'\s+'
-			if s.tokenize == 'white':
-				reSplitExp = r'\s+'
-			elif s.tokenize == 'word':
-				reSplitExp = r'\W'
-			elif s.tokenize != '':
-				reSplitExp = s.tokenize
+		elif s.tokenize == 'word':
+			reSplitExp = r'\W'
+		elif s.tokenize != '':
+			reSplitExp = s.tokenize
 
-			for token in re.split(reSplitExp, line):
-				try:
-					self.tokenDict[token] += 1
-				except:
-					self.tokenDict[token] = 1
+		# how to match (filter) the input...
+		if   s.matchRegexp == 'word': s.matchRegexp = r'^[A-Z,a-z]+$'
+		elif s.matchRegexp == 'num':  s.matchRegexp = r'^\d+$'
 
+		# docs say these are cached, but i got about 2x speed boost
+		# from doing the compile
+		pt = re.compile(reSplitExp)
+		pm = re.compile(s.matchRegexp)
+
+		for line in sys.stdin:
+			for token in pt.split(line):
+				if pm.match(token):
+					s.totalValues += 1
+					pruneObjects += 1
+					# prune the hash if it gets too large
+					if pruneObjects > s.keyPruneInterval:
+						self.prune_keys(s)
+						pruneObjects = 0
+					try:
+						self.tokenDict[token] += 1
+					except:
+						self.tokenDict[token] = 1
+
+				# this is a count of total tokens considered
 				s.totalObjects += 1
-				s.totalValues += 1
+
 
 class Settings(object):
 	def __init__(self):
@@ -114,27 +152,31 @@ class Settings(object):
 		self.height = 15
 		self.histogramChar = '|'
 		self.colourisedOutput = False
-		self.logarithmic = True
+		self.logarithmic = False
 		self.numOnly = ''
 		self.verbose = False
-		self.maxKeys = 4000
 		self.graphValues = ''
-		self.colourPalette = '0,0,32,35,34'
 		self.size = ''
 		self.tokenize = ''
-		self.matchRegexp = ''
+		self.matchRegexp = '.'
+		# for colourised output
+		self.colourPalette = '0,0,32,35,34'
 		self.regularColour = ""
 		self.keyColour = ""
 		self.ctColour = ""
 		self.pctColour = ""
 		self.graphColour = ""
+		# for stats
 		self.totalObjects = 0
 		self.totalValues = 0
+		# every keyPruneInterval keys, prune the hash to maxKeys top keys
+		self.keyPruneInterval = 120000
+		self.maxKeys = 5000
 
 		# manual argument parsing easier than getopts IMO
 		for arg in sys.argv:
 			if arg == '-h':
-				doUsage()
+				doUsage(self)
 				sys.exit(0)
 			elif arg in ("-c", "--color", "--colour"):
 				self.colourisedOutput = True
@@ -172,9 +214,37 @@ class Settings(object):
 				elif argList[0] in ("-m", "--match"):
 					self.matchRegexp = argList[1]
 
+		# first, size, which might be further overridden by width/height later
+		if self.size in ("full", "fl", "f"):
+			# tput will tell us the term width/height even if input is stdin
+			self.width, self.height = os.popen('echo "`tput cols` `tput lines`"', 'r').read().split()
+			# convert to numerics from string
+			self.width = int(self.width)
+			self.height = int(self.height) - 3
+			# need room for the verbosity output
+			if self.verbose == True: self.height -= 5
+			# in case tput went all bad, ensure some minimum size
+			if self.width < 40: self.width = 40
+			if self.height < 10: self.height = 10
+		elif self.size in ("small", "sm", "s"):
+			self.width  = 60
+			self.height = 10
+		elif self.size in ("medium", "med", "m"):
+			self.width  = 100
+			self.height = 20
+		elif self.size in ("large", "lg", "l"):
+			self.width  = 140
+			self.height = 35
+
 		# override variables if they were explicitly given
 		if self.widthArg  != 0: self.width  = self.widthArg
 		if self.heightArg != 0: self.height = self.heightArg
+
+		# maxKeys should be at least a few thousand greater than height to reduce odds
+		# of throwing away high-count values that appear sparingly in the data
+		if self.maxKeys < self.height + 3000:
+			self.maxKeys = self.height + 3000
+			if self.verbose: sys.stderr.write("Updated maxKeys to %d (height + 3000)\n" % self.maxKeys)
 
 		# colour palette
 		if self.colourisedOutput == True:
@@ -183,7 +253,7 @@ class Settings(object):
 			(self.regularColour, self.keyColour, self.ctColour, self.pctColour, self.graphColour) = cl
 
 
-def doUsage():
+def doUsage(s):
 	print ""
 	print "usage: <commandWithOutput> | %s" % (scriptName)
 	print "         [--rcfile=<rcFile>]"
@@ -193,7 +263,7 @@ def doUsage():
 	print "         [--graph[=[kv|vk]] [--numonly[=mon|abs]]"
 	print "         [--char=<barChars>|<substitutionString>]"
 	print "         [--help] [--verbose]"
-	print "  --keys=K       every %d values added, prune hash to K keys (default 4000)\n" % (keyPruneInterval)
+	print "  --keys=K       every %d values added, prune hash to K keys (default 5000)\n" % (s.keyPruneInterval)
 	print "  --char=C       character(s) to use for histogram character, some substitutions follow:"
 	print "        hl       Use 1/3-width unicode partial lines to simulate 3x actual terminal width"
 	print "        pb       Use 1/8-width unicode partial blocks to simulate 8x actual terminal width"
