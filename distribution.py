@@ -19,7 +19,7 @@ and very likely be happier with what you see.
 
 import re,sys,time
 
-class Histogram (object):
+class Histogram(object):
 	"""
 	Takes the tokenDict built in the InputReader class and goes
 	through it, printing a histogram for each of the highest height
@@ -28,11 +28,11 @@ class Histogram (object):
 	def __init__(self):
 		pass
 
-	def write_hist (self, s, tokenDict):
+	def write_hist(self, s, tokenDict):
 		maxTokenLen = 0
 		outputDict = {}
 
-		totalKeys = len (tokenDict)
+		totalKeys = len(tokenDict)
 		numItems = 0
 		maxVal = 0
 		for k in sorted(tokenDict, key=tokenDict.get, reverse=True):
@@ -48,41 +48,43 @@ class Histogram (object):
 		# we output one less than actual number here
 		histWidth = s.width - maxTokenLen - 2 - 6 - 9
 
-		s.endTime = int (time.time() * 1000)
+		s.endTime = int(time.time() * 1000)
 		totalMillis = s.endTime - s.startTime
 		if s.verbose == True:
-			sys.stderr.write ("tokens/lines examined: %d" % (s.totalObjects) + "\n")
-			sys.stderr.write (" tokens/lines matched: %d" % (s.totalValues) + "\n")
-			sys.stderr.write ("       histogram keys: %d" % (totalKeys) + "\n")
-			sys.stderr.write ("              runtime: %dms" % (totalMillis) + "\n")
+			sys.stderr.write("tokens/lines examined: %d" % (s.totalObjects) + "\n")
+			sys.stderr.write(" tokens/lines matched: %d" % (s.totalValues) + "\n")
+			sys.stderr.write("       histogram keys: %d" % (totalKeys) + "\n")
+			sys.stderr.write("              runtime: %dms" % (totalMillis) + "\n")
 
 		for k in sorted(outputDict, key=outputDict.get, reverse=True):
 			if k != '':
-				sys.stdout.write (s.keyColour)
-				sys.stdout.write (k.rjust(maxTokenLen) + " ")
-				sys.stdout.write (s.ctColour)
-				sys.stdout.write ("%5s " % outputDict[k])
+				sys.stdout.write(s.keyColour)
+				sys.stdout.write(k.rjust(maxTokenLen) + " ")
+				sys.stdout.write(s.ctColour)
+				sys.stdout.write("%5s " % outputDict[k])
 				pct = "(%2.2f%%)" % (outputDict[k] * 1.0 / s.totalObjects * 100)
-				sys.stdout.write (s.pctColour)
-				sys.stdout.write ("%8s " % pct)
-				sys.stdout.write (s.graphColour)
-				sys.stdout.write (s.histogramChar[0] * (int (outputDict[k] * 1.0 / maxVal * histWidth) - 1))
-				if len (s.histogramChar) > 1:
-					sys.stdout.write (s.histogramChar[1])
+				sys.stdout.write(s.pctColour)
+				sys.stdout.write("%8s " % pct)
+				sys.stdout.write(s.graphColour)
+				sys.stdout.write(s.histogramChar[0] * (int(outputDict[k] * 1.0 / maxVal * histWidth) - 1))
+				if len(s.histogramChar) > 1:
+					sys.stdout.write(s.histogramChar[1])
 				else:
-					sys.stdout.write (s.histogramChar[0])
-				sys.stdout.write (s.regularColour)
-				sys.stdout.write ("\n")
+					sys.stdout.write(s.histogramChar[0])
+				sys.stdout.write(s.regularColour)
+				sys.stdout.write("\n")
 
-class InputReader (object):
+class InputReader(object):
 	"""
 	Reads stdin, parses it into a dictionary of key and value is number
-	of appearances of that key in the input
+	of appearances of that key in the input - this will also prune the
+	token frequency dict on after a certain number of insertions to
+	prevent OOME on large datasets
 	"""
 	def __init__(self):
 		self.tokenDict = {}
 
-	def tokenize_input (self, s):
+	def tokenize_input(self, s):
 		for line in sys.stdin:
 			reSplitExp = r'\s+'
 			if s.tokenize == 'white':
@@ -101,10 +103,10 @@ class InputReader (object):
 				s.totalObjects += 1
 				s.totalValues += 1
 
-class Settings (object):
+class Settings(object):
 	def __init__(self):
 		self.totalMillis = 0
-		self.startTime = int (time.time() * 1000)
+		self.startTime = int(time.time() * 1000)
 		self.endTime = 0
 		self.widthArg = 0
 		self.heightArg = 0
@@ -115,7 +117,7 @@ class Settings (object):
 		self.logarithmic = True
 		self.numOnly = ''
 		self.verbose = False
-		maxKeys = 4000
+		self.maxKeys = 4000
 		self.graphValues = ''
 		self.colourPalette = '0,0,32,35,34'
 		self.size = ''
@@ -176,7 +178,7 @@ class Settings (object):
 
 		# colour palette
 		if self.colourisedOutput == True:
-			cl = self.colourPalette.split (',')
+			cl = self.colourPalette.split(',')
 			cl = [chr(27) + '[' + e + 'm' for e in cl]
 			(self.regularColour, self.keyColour, self.ctColour, self.pctColour, self.graphColour) = cl
 
@@ -235,12 +237,12 @@ def doUsage():
 	print ""
 
 # simple argument parsing and call top-level routines
-def main (argv):
+def main(argv):
 	s = Settings()
 	i = InputReader()
-	i.tokenize_input (s)
-	h = Histogram ()
-	h.write_hist (s, i.tokenDict)
+	i.tokenize_input(s)
+	h = Histogram()
+	h.write_hist(s, i.tokenDict)
 
 scriptName = sys.argv[0]
 if __name__ == "__main__":
