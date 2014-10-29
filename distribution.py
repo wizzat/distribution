@@ -132,9 +132,9 @@ class InputReader(object):
 					if pruneObjects > s.keyPruneInterval:
 						self.prune_keys(s)
 						pruneObjects = 0
-					try:
+					if token in self.tokenDict:
 						self.tokenDict[token] += 1
-					except:
+					else:
 						self.tokenDict[token] = 1
 
 				# this is a count of total tokens considered
