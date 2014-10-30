@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 # vim: set noexpandtab:
 # --
@@ -69,15 +70,42 @@ class Histogram(object):
 				sys.stdout.write("%8s " % pct)
 				sys.stdout.write(s.graphColour)
 
-				if s.logarithmic:
-					sys.stdout.write(s.histogramChar[0] * (int(math.log(outputDict[k]) / maxLog * histWidth) - 1))
+				# first case is partial-width chars
+				if s.charWidth < 1:
+					zeroChar = s.graphChars[-1]
+				elif len(s.histogramChar) > 1 and s.unicodeMode == False:
+					zeroChar = s.histogramChar[0]
+					oneChar = s.histogramChar[1]
 				else:
-					sys.stdout.write(s.histogramChar[0] * (int(outputDict[k] * 1.0 / maxVal * histWidth) - 1))
+					zeroChar = s.histogramChar
+					oneChar = s.histogramChar
 
-				if len(s.histogramChar) > 1:
-					sys.stdout.write(s.histogramChar[1])
+				# write out the full-width integer portion of the histogram
+				if s.logarithmic:
+					intWidth = int(math.log(outputDict[k]) / maxLog * histWidth)
+					remainderWidth = (math.log(outputDict[k]) / maxLog * histWidth) - intWidth
 				else:
-					sys.stdout.write(s.histogramChar[0])
+					intWidth = int(outputDict[k] * 1.0 / maxVal * histWidth)
+					remainderWidth = (outputDict[k] * 1.0 / maxVal * histWidth) - intWidth
+
+				# write the zeroeth character intWidth times...
+				sys.stdout.write(zeroChar * intWidth)
+
+				# we always have at least one remaining char for histogram - if
+				# we have full-width chars, then just print it, otherwise do a
+				# calculation of how much remainder we need to print
+				#
+				# FIXME: The remainder partial char printed does not take into
+				# account logarithmic scale.
+				if s.charWidth == 1:
+					sys.stdout.write(oneChar)
+				elif s.charWidth < 1:
+					# this is high-resolution, so figure out what remainder we
+					# have to represent
+					if remainderWidth > s.charWidth:
+						whichChar = int(remainderWidth / s.charWidth)
+						sys.stdout.write(s.graphChars[whichChar])
+
 				sys.stdout.write(s.regularColour)
 				sys.stdout.write("\n")
 
@@ -172,6 +200,12 @@ class Settings(object):
 		# every keyPruneInterval keys, prune the hash to maxKeys top keys
 		self.keyPruneInterval = 120000
 		self.maxKeys = 5000
+		# for advanced graphing
+		self.unicodeMode = False
+		self.charWidth = 1
+		self.graphChars = []
+		self.partialBlocks =    ["▏", "▎", "▍", "▌", "▋", "▊", "▉", "█"] # char=pb
+		self.partialLines =     ["╸", "╾", "━"] # char=hl
 
 		# manual argument parsing easier than getopts IMO
 		for arg in sys.argv:
@@ -191,7 +225,7 @@ class Settings(object):
 			elif arg in ("-v", "--verbose"):
 				self.verbose = True
 			else:
-				argList = arg.split('=')
+				argList = arg.split('=', 1)
 				if argList[0] in ("-w", "--width"):
 					self.widthArg = int(argList[1])
 				elif argList[0] in ("-h", "--height"):
@@ -252,6 +286,23 @@ class Settings(object):
 			cl = [chr(27) + '[' + e + 'm' for e in cl]
 			(self.regularColour, self.keyColour, self.ctColour, self.pctColour, self.graphColour) = cl
 
+		# some useful ASCII-->utf-8 substitutions
+		if   self.histogramChar == "ba": self.unicodeMode = True; self.histogramChar = "▬"
+		elif self.histogramChar == "bl": self.unicodeMode = True; self.histogramChar = "Ξ"
+		elif self.histogramChar == "em": self.unicodeMode = True; self.histogramChar = "—"
+		elif self.histogramChar == "me": self.unicodeMode = True; self.histogramChar = "⋯"
+		elif self.histogramChar == "di": self.unicodeMode = True; self.histogramChar = "♦"
+		elif self.histogramChar == "dt": self.unicodeMode = True; self.histogramChar = "•"
+		elif self.histogramChar == "sq": self.unicodeMode = True; self.histogramChar = "□"
+
+		# sub-full character width graphing systems
+		if self.histogramChar == "pb":
+			self.charWidth = 0.125;
+			self.graphChars = self.partialBlocks
+		elif self.histogramChar == "pl":
+			self.charWidth = 0.3334;
+			self.graphChars = self.partialLines
+
 
 def doUsage(s):
 	print ""
@@ -265,8 +316,15 @@ def doUsage(s):
 	print "         [--help] [--verbose]"
 	print "  --keys=K       every %d values added, prune hash to K keys (default 5000)\n" % (s.keyPruneInterval)
 	print "  --char=C       character(s) to use for histogram character, some substitutions follow:"
-	print "        hl       Use 1/3-width unicode partial lines to simulate 3x actual terminal width"
+	print "        pl       Use 1/3-width unicode partial lines to simulate 3x actual terminal width"
 	print "        pb       Use 1/8-width unicode partial blocks to simulate 8x actual terminal width"
+	print "        ba       (▬) Bar"
+	print "        bl       (Ξ) Building"
+	print "        em       (—) Emdash"
+	print "        me       (⋯) Mid-Elipses"
+	print "        di       (♦) Diamond"
+	print "        dt       (•) Dot"
+	print "        sq       (□) Square"
 	print "  --color        colourise the output"
 	print "  --graph[=G]    input is already key/value pairs. vk is default:"
 	print "        kv       input is ordered key then value"

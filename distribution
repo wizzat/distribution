@@ -166,10 +166,7 @@ my $graphChars = undef;
 if ($histogramChar eq "pb") {
 	$charWidth = 0.125;
 	$graphChars = $partialBlocks;
-} elsif ($histogramChar eq "pc") {
-	$charWidth = 0.5;
-	$graphChars = $partialCircles;
-} elsif ($histogramChar eq "hl") {
+} elsif ($histogramChar eq "pl") {
 	$charWidth = 0.3334;
 	$graphChars = $partialLines;
 }
@@ -511,11 +508,11 @@ sub outputGraph {
 			}
 		}
 
-		# print one too many bar characters so <1% gets a single bar character
-		my $remainder = ($barWidth->[$i] * $maxBarWidth) - int ($barWidth->[$i] * $maxBarWidth);
-		my $whichChar = int ($remainder / $charWidth);
+		# print one too many bar characters so we always see something
 		if ($charWidth < 1) {
 			# if we have partial-width characters, get higher resolution
+			my $remainder = ($barWidth->[$i] * $maxBarWidth) - int ($barWidth->[$i] * $maxBarWidth);
+			my $whichChar = int ($remainder / $charWidth);
 			if ($barWidth->[$i] * $maxBarWidth > $charWidth) {
 				# we have more than charWidth remainder, so print out a
 				# remainder portion
@@ -563,6 +560,8 @@ sub doArgs {
 	print "         [--help] [--verbose]\n";
 	print "  --keys=K       every $keyPruneInterval values added, prune hash to K keys (default 4000)\n";
 	print "  --char=C       character(s) to use for histogram character, some substitutions follow:\n";
+	print "        pl       Use 1/3-width unicode partial lines to simulate 3x actual terminal width\n";
+	print "        pb       Use 1/8-width unicode partial blocks to simulate 8x actual terminal width\n";
 	print "        ba       (▬) Bar\n";
 	print "        bl       (Ξ) Building\n";
 	print "        em       (—) Emdash\n";
@@ -570,9 +569,6 @@ sub doArgs {
 	print "        di       (♦) Diamond\n";
 	print "        dt       (•) Dot\n";
 	print "        sq       (□) Square\n";
-	print "        hl       Use 1/3-width unicode partial lines to simulate 3x actual terminal width\n";
-	print "        pb       Use 1/8-width unicode partial blocks to simulate 8x actual terminal width\n";
-	print "        pc       Use 1/2-width unicode partial circles to simulate 2x actual terminal width\n";
 	print "  --color        colourise the output\n";
 	print "  --graph[=G]    input is already key/value pairs. vk is default:\n";
 	print "        kv       input is ordered key then value\n";
