@@ -59,7 +59,7 @@ Options
 ```
   --keys=K       periodically prune hash to K keys (default 5000)
   --char=C       character(s) to use for histogram character, some substitutions follow:
-        hl       Use 1/3-width unicode partial lines to simulate 3x actual terminal width
+        pl       Use 1/3-width unicode partial lines to simulate 3x actual terminal width
         pb       Use 1/8-width unicode partial blocks to simulate 8x actual terminal width
         ba       (▬) Bar
         bl       (Ξ) Building

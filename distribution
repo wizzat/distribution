@@ -146,7 +146,7 @@ if ($colourisedOutput) {
 my $verticalBlocks =   ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]; # for future?
 my $partialBlocks =    ["▏", "▎", "▍", "▌", "▋", "▊", "▉", "█"]; # char=pb
 my $partialCircles =   ["◖", "●"]; # char=pc
-my $partialLines =     ["╸", "╾", "━"]; # char=hl
+my $partialLines =     ["╸", "╾", "━"]; # char=pl
 
 # some useful substitutions for prettiness
 if ($histogramChar eq "ba") { $unicode = 1; $histogramChar = "▬"; }
