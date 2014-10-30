@@ -558,7 +558,7 @@ sub doArgs {
 	print "         [--graph[=[kv|vk]] [--numonly[=mon|abs]]\n";
 	print "         [--char=<barChars>|<substitutionString>]\n";
 	print "         [--help] [--verbose]\n";
-	print "  --keys=K       every $keyPruneInterval values added, prune hash to K keys (default 4000)\n";
+	print "  --keys=K       every $keyPruneInterval values added, prune hash to K keys (default 5000)\n";
 	print "  --char=C       character(s) to use for histogram character, some substitutions follow:\n";
 	print "        pl       Use 1/3-width unicode partial lines to simulate 3x actual terminal width\n";
 	print "        pb       Use 1/8-width unicode partial blocks to simulate 8x actual terminal width\n";

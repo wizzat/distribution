@@ -57,8 +57,10 @@ Options
 =======
 
 ```
-  --keys=K       periodically prune hash to K keys (default 4000)
+  --keys=K       periodically prune hash to K keys (default 5000)
   --char=C       character(s) to use for histogram character, some substitutions follow:
+        hl       Use 1/3-width unicode partial lines to simulate 3x actual terminal width
+        pb       Use 1/8-width unicode partial blocks to simulate 8x actual terminal width
         ba       (▬) Bar
         bl       (Ξ) Building
         em       (—) Emdash
@@ -66,9 +68,6 @@ Options
         di       (♦) Diamond
         dt       (•) Dot
         sq       (□) Square
-        hl       Use 1/3-width unicode partial lines to simulate 3x actual terminal width
-        pb       Use 1/8-width unicode partial blocks to simulate 8x actual terminal width
-        pc       Use 1/2-width unicode partial circles to simulate 2x actual terminal width
   --color        colourise the output
   --graph[=G]    input is already key/value pairs. vk is default:
         kv       input is ordered key then value
