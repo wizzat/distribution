@@ -47,27 +47,45 @@ class Histogram(object):
 		# grab log of maxVal in case logarithmic graphs
 		if s.logarithmic: maxLog = math.log(maxVal)
 
-		# we always output a single histogram char at the end, so
-		# we output one less than actual number here
-		histWidth = s.width - maxTokenLen - 2 - 6 - 9
-
 		s.endTime = int(time.time() * 1000)
 		totalMillis = s.endTime - s.startTime
 		if s.verbose == True:
-			sys.stderr.write("tokens/lines examined: %d" % (s.totalObjects) + "\n")
-			sys.stderr.write(" tokens/lines matched: %d" % (s.totalValues) + "\n")
-			sys.stderr.write("       histogram keys: %d" % (len(tokenDict)) + "\n")
-			sys.stderr.write("              runtime: %dms" % (totalMillis) + "\n")
+			sys.stderr.write("tokens/lines examined: {:,d}".format(s.totalObjects) + "\n")
+			sys.stderr.write(" tokens/lines matched: {:,d}".format(s.totalValues) + "\n")
+			sys.stderr.write("       histogram keys: {:,d}".format(len(tokenDict)) + "\n")
+			sys.stderr.write("              runtime: {:,.2f}ms".format(totalMillis) + "\n")
 
+		# the first entry will determine these values
+		maxValueWidth = 0
+		maxPctWidth = 0
 		for k in sorted(outputDict, key=outputDict.get, reverse=True):
 			if k:
+				if maxValueWidth == 0:
+					testString = "%s" % outputDict[k]
+					maxValueWidth = len(testString)
+					testString = "(%2.2f%%)" % (outputDict[k] * 1.0 / s.totalValues * 100)
+					maxPctWidth = len(testString)
+
+					# we always output a single histogram char at the end, so
+					# we output one less than actual number here
+					histWidth = s.width - (maxTokenLen+1) - (maxValueWidth+1) - (maxPctWidth+1) - 1
+
+					# output a header
+					sys.stderr.write("Key".rjust(maxTokenLen) + "|")
+					sys.stderr.write("Ct".ljust(maxValueWidth) + " ")
+					sys.stderr.write("(Pct)".ljust(maxPctWidth) + " ")
+					sys.stderr.write("Histogram\n")
+
 				sys.stdout.write(s.keyColour)
-				sys.stdout.write(k.rjust(maxTokenLen) + " ")
+				sys.stdout.write(k.rjust(maxTokenLen) + "|")
 				sys.stdout.write(s.ctColour)
-				sys.stdout.write("%5s " % outputDict[k])
-				pct = "(%2.2f%%)" % (outputDict[k] * 1.0 / s.totalObjects * 100)
+
+				outVal = "%s" % outputDict[k]
+				sys.stdout.write(outVal.rjust(maxValueWidth) + " ")
+
+				pct = "(%2.2f%%)" % (outputDict[k] * 1.0 / s.totalValues * 100)
 				sys.stdout.write(s.pctColour)
-				sys.stdout.write("%8s " % pct)
+				sys.stdout.write(pct.rjust(maxPctWidth) + " ")
 				sys.stdout.write(s.graphColour)
 
 				# first case is partial-width chars
@@ -129,44 +147,82 @@ class InputReader(object):
 				if numKeysTransferred > s.maxKeys:
 					break
 		self.tokenDict = newDict
+		s.numPrunes += 1
 
 	def tokenize_input(self, s):
-		pruneObjects = 0
+		# how to split the input... typically we split on whitespace or
+		# word boundaries, but the user can specify any regexp
+		if   s.tokenize == 'white': s.tokenize = r'\s+'
+		elif s.tokenize == 'word': s.tokenize = r'\W'
 
-		# how to split the input...
-		reSplitExp = r'\s+'
-		if s.tokenize == 'white':
-			reSplitExp = r'\s+'
-		elif s.tokenize == 'word':
-			reSplitExp = r'\W'
-		elif s.tokenize != '':
-			reSplitExp = s.tokenize
-
-		# how to match (filter) the input...
-		if   s.matchRegexp == 'word': s.matchRegexp = r'^[A-Z,a-z]+$'
-		elif s.matchRegexp == 'num':  s.matchRegexp = r'^\d+$'
+		# how to match (filter) the input... typically we want either
+		# all-alpha or all-numeric, but again, user can specify
+		if   s.matchRegexp == 'word':   s.matchRegexp = r'^[A-Z,a-z]+$'
+		elif s.matchRegexp == 'num':    s.matchRegexp = r'^\d+$'
+		elif s.matchRegexp == 'number': s.matchRegexp = r'^\d+$'
 
 		# docs say these are cached, but i got about 2x speed boost
 		# from doing the compile
-		pt = re.compile(reSplitExp)
+		pt = re.compile(s.tokenize)
 		pm = re.compile(s.matchRegexp)
 
+		nextStat = time.time() + s.statInterval
+
+		pruneObjects = 0
 		for line in sys.stdin:
-			for token in pt.split(line):
-				if pm.match(token):
+			if s.tokenize:
+				for token in pt.split(line):
+					# user desires to break line into tokens...
+					s.totalObjects += 1
+					if pm.match(token):
+						s.totalValues += 1
+						pruneObjects += 1
+						if token in self.tokenDict:
+							self.tokenDict[token] += 1
+						else:
+							self.tokenDict[token] = 1
+			else:
+				# user just wants every line to be a token
+				s.totalObjects += 1
+				line = line.rstrip()
+				if pm.match(line):
 					s.totalValues += 1
 					pruneObjects += 1
-					# prune the hash if it gets too large
-					if pruneObjects > s.keyPruneInterval:
-						self.prune_keys(s)
-						pruneObjects = 0
-					if token in self.tokenDict:
-						self.tokenDict[token] += 1
+					if line in self.tokenDict:
+						self.tokenDict[line] += 1
 					else:
-						self.tokenDict[token] = 1
+						self.tokenDict[line] = 1
 
-				# this is a count of total tokens considered
-				s.totalObjects += 1
+			# prune the hash if it gets too large
+			if pruneObjects >= s.keyPruneInterval:
+				self.prune_keys(s)
+				pruneObjects = 0
+
+			if s.verbose and time.time() > nextStat:
+				sys.stderr.write("tokens/lines examined: {:,d} ; hash prunes: {:,d}...".format(s.totalObjects, s.numPrunes) + chr(13))
+				nextStat = time.time() + s.statInterval
+
+	def read_pretallied_tokens(self, s):
+		vk = re.compile(r'^\s*(\d+)\s+(.+)$')
+		kv = re.compile(r'^(.+?)\s+(\d+)$')
+		if s.graphValues == 'vk':
+			for line in sys.stdin:
+				m = vk.match(line)
+				try:
+					self.tokenDict[m.group(2)] = int(m.group(1))
+					s.totalValues += int(m.group(1))
+					s.totalObjects += 1
+				except:
+					sys.stderr.write(" E Input malformed+discarded (perhaps pass -g=kv?): %s\n" % line)
+		elif s.graphValues == 'kv':
+			for line in sys.stdin:
+				m = kv.match(line)
+				try:
+					self.tokenDict[m.group(1)] = int(m.group(2))
+					s.totalValues += int(m.group(2))
+					s.totalObjects += 1
+				except:
+					sys.stderr.write(" E Input malformed+discarded (perhaps pass -g=vk?): %s\n" % line)
 
 
 class Settings(object):
@@ -178,7 +234,7 @@ class Settings(object):
 		self.heightArg = 0
 		self.width = 80
 		self.height = 15
-		self.histogramChar = '|'
+		self.histogramChar = '-'
 		self.colourisedOutput = False
 		self.logarithmic = False
 		self.numOnly = ''
@@ -186,7 +242,11 @@ class Settings(object):
 		self.graphValues = ''
 		self.size = ''
 		self.tokenize = ''
+		# by default, everything matches (nothing is stripped out)
 		self.matchRegexp = '.'
+		# how often to give status if verbose
+		self.statInterval = 1.0
+		self.numPrunes = 0
 		# for colourised output
 		self.colourPalette = '0,0,32,35,34'
 		self.regularColour = ""
@@ -198,7 +258,7 @@ class Settings(object):
 		self.totalObjects = 0
 		self.totalValues = 0
 		# every keyPruneInterval keys, prune the hash to maxKeys top keys
-		self.keyPruneInterval = 120000
+		self.keyPruneInterval = 1500000
 		self.maxKeys = 5000
 		# for advanced graphing
 		self.unicodeMode = False
@@ -368,7 +428,12 @@ def doUsage(s):
 def main(argv):
 	s = Settings()
 	i = InputReader()
-	i.tokenize_input(s)
+
+	if s.graphValues:
+		i.read_pretallied_tokens(s)
+	else:
+		i.tokenize_input(s)
+
 	h = Histogram()
 	h.write_hist(s, i.tokenDict)
 

@@ -52,11 +52,10 @@ my $widthArg = 0;
 my $heightArg = 0;
 my $logarithmic = 0;
 # every keyPruneInterval keys, prune the hash to maxKeys top keys
-my $keyPruneInterval = 120000;
+my $keyPruneInterval = 1500000;
 my $maxKeys = 5000;
 my $numOnly = '';
-# character for ease of eye to scan left/right/up/down
-my $histogramChar = "+";
+my $histogramChar = "-";
 my $unicode = 0;
 my $tokenize = 0;
 # by default, everything matches (nothing is stripped out)
@@ -64,7 +63,8 @@ my $matchRegexp = ".";
 # status and summary statistics
 my $verbose = 0;
 # how often to give status if verbose
-my $statInterval = 0.5;
+my $statInterval = 1.0;
+my $numPrunes = 0;
 # whether or not to parse input into bins (if data is pre-summarised and we're
 # just presenting results)
 my $graphValues = "";
@@ -306,7 +306,7 @@ if ($verbose) {
 	print STDERR "tokens/lines examined: " . addCommas($totalObjects) . "    \n";
 	print STDERR " tokens/lines matched: " . addCommas($totalValues) . "\n";
 	print STDERR "       histogram keys: " . addCommas($totalKeys) . "\n";
-	print STDERR "              runtime: ${totalMillis}ms\n";
+	print STDERR "              runtime: " . addCommas($totalMillis) . "ms\n";
 }
 
 # almost done now!
@@ -334,6 +334,7 @@ sub pruneKeys {
 		last if ($numKeysTransferred > $maxKeys);
 	}
 	$valuesDict = $newDict;
+	$numPrunes++;
 }
 
 # get the keys ordered simply by key
@@ -383,6 +384,7 @@ sub readLinesBuildHash {
 				if ($lineToken =~ /$matchRegexp/) {
 					$valuesDict->{$lineToken}++;
 					$totalValues++;
+					$pruneObjects++;
 				}
 			}
 		} else {
@@ -391,13 +393,14 @@ sub readLinesBuildHash {
 			if ($inLine =~ /$matchRegexp/) {
 				$valuesDict->{$inLine}++;
 				$totalValues++;
+				$pruneObjects++;
 			}
 		}
 		if ($verbose && time() > $nextStat) {
-			print STDERR "tokens/lines examined: " . addCommas($totalObjects) . "..." . chr(13);
+			print STDERR "tokens/lines examined: " . addCommas($totalObjects) . "... ; hash prunes: $numPrunes" . chr(13);
 			$nextStat = time() + $statInterval;
 		}
-		if ($pruneObjects++ >= $keyPruneInterval) {
+		if ($pruneObjects >= $keyPruneInterval) {
 			pruneKeys();
 			$pruneObjects = 0;
 		}
@@ -416,7 +419,7 @@ sub readPretalliedTokens {
 				if ($1 > $maxVal) { $maxVal = $1; }
 				$totalObjects++;
 			} else {
-				print STDERR " E Input malformed+discarded (perhaps pass -g=kv): $inLine\n";
+				print STDERR " E Input malformed+discarded (perhaps pass -g=kv?): $inLine\n";
 			}
 		} elsif ($graphValues eq 'kv') {
 			if ($inLine =~ /^(.+?)\s+(\d+)$/) {
@@ -425,7 +428,7 @@ sub readPretalliedTokens {
 				if ($2 > $maxVal) { $maxVal = $2; }
 				$totalObjects++;
 			} else {
-				print STDERR " E Input malformed+discarded (perhaps pass -g=vk): $inLine\n";
+				print STDERR " E Input malformed+discarded (perhaps pass -g=vk?): $inLine\n";
 			}
 		}
 	}
@@ -462,7 +465,7 @@ sub addCommas {
 # barWidth->[] - list of the widths of the bars
 sub outputGraph {
 	# print a header with alignment from key names
-	print STDERR "Val";
+	print STDERR "Key";
 	for ($j = 4; $j <= $maxKeyLen; $j++) { print STDERR " "; }
 	print STDERR "|Ct (Pct)";
 	for ($j = 7; $j <= $maxPreBarLen; $j++) { print STDERR " "; }
