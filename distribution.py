@@ -212,6 +212,9 @@ class InputReader(object):
 				nextStat = time.time() + s.statInterval
 
 	def read_pretallied_tokens(self, s):
+		# the input is already just a series of keys with the frequency of the
+		# keys precomputed, as in "du -sb" - vk means the number is first, key
+		# second. kv means key first, number second
 		vk = re.compile(r'^\s*(\d+)\s+(.+)$')
 		kv = re.compile(r'^(.+?)\s+(\d+)$')
 		if s.graphValues == 'vk':
@@ -234,6 +237,10 @@ class InputReader(object):
 					sys.stderr.write(" E Input malformed+discarded (perhaps pass -g=vk?): %s\n" % line)
 
 	def read_numerics(self, s, h):
+		# in this special mode, we print out the histogram here instead
+		# of later - because it's a far simpler histogram without all the
+		# totals, percentages, etc of the real histogram. we're just
+		# showing a graph of a series of numbers
 		lastVal = 0
 		maxVal = 0
 		outList = []
@@ -255,9 +262,12 @@ class InputReader(object):
 			outList.append(graphVal)
 			s.totalObjects += 1
 
+		# simple graphical output
 		for k in outList:
+			sys.stdout.write(s.keyColour)
+			sys.stdout.write("%5s " % int(k))
 			sys.stdout.write(s.graphColour)
-			sys.stdout.write(h.histogram_bar(s, s.width - 2, maxVal, k) + "\n")
+			sys.stdout.write(h.histogram_bar(s, s.width - 8, maxVal, k) + "\n")
 			sys.stdout.write(s.regularColour)
 
 
@@ -366,6 +376,13 @@ class Settings(object):
 			self.width  = 140
 			self.height = 35
 
+		# synonyms "monotonically-increasing": derivative, difference, delta, increasing
+		# so all "d" "i" and "m" words will be graphing those differences
+		if self.numOnly[0] in ('d', 'i', 'm'): self.numOnly = 'mon'
+		# synonyms "actual values": absolute, actual, number, normal, noop,
+		# so all "a" and "n" words will graph straight up numbers
+		if self.numOnly[0] in ('a', 'n'): self.numOnly = 'abs'
+
 		# override variables if they were explicitly given
 		if self.widthArg  != 0: self.width  = self.widthArg
 		if self.heightArg != 0: self.height = self.heightArg
@@ -407,7 +424,7 @@ def doUsage(s):
 	print "         [--size={sm|med|lg|full} | --width=<width> --height=<height>]"
 	print "         [--color] [--palette=r,k,c,p,g]"
 	print "         [--tokenize=<tokenChar>]"
-	print "         [--graph[=[kv|vk]] [--numonly[=mon|abs]]"
+	print "         [--graph[=[kv|vk]] [--numonly[=derivative,diff|abs,absolute,actual]]"
 	print "         [--char=<barChars>|<substitutionString>]"
 	print "         [--help] [--verbose]"
 	print "  --keys=K       every %d values added, prune hash to K keys (default 5000)\n" % (s.keyPruneInterval)
@@ -432,8 +449,8 @@ def doUsage(s):
 	print "        word     ^[A-Z,a-z]+\$ - tokens/lines must be entirely alphabetic"
 	print "        num      ^\\d+\$        - tokens/lines must be entirely numeric"
 	print "  --numonly[=N]  input is numerics, simply graph values without labels"
-	print "        abs      input is absolute values (default)"
-	print "        mon      input monotonically-increasing, graph differences (of 2nd and later values)"
+	print "        actual   input is just values (default - abs, absolute are synonymous to actual)"
+	print "        diff     input monotonically-increasing, graph differences (of 2nd and later values)"
 	print "  --palette=P    comma-separated list of ANSI colour values for portions of the output"
 	print "                 in this order: regular, key, count, percent, graph. implies --color."
 	print "  --rcfile=F     use this rcfile instead of \$HOME/.distributionrc - must be first argument!"

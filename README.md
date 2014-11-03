@@ -79,8 +79,8 @@ Options
         word     ^[A-Z,a-z]+$ - tokens/lines must be entirely alphabetic
         num      ^\d+$        - tokens/lines must be entirely numeric
   --numonly[=N]  input is numerics, simply graph values without labels
-        abs      input is absolute values (default)
-        mon      input monotonically-increasing, graph differences (of 2nd and later values)
+        actual   input is just values (default - abs, absolute are synonymous to actual)
+        diff     input monotonically-increasing, graph differences (of 2nd and later values)
   --palette=P    comma-separated list of ANSI colour values for portions of the output
                  in this order: regular, key, count, percent, graph. implies --color.
   --rcfile=F     use this rcfile instead of $HOME/.distributionrc - must be first argument!

@@ -351,7 +351,7 @@ sub readNumerics {
 
 	while ($inLine = <STDIN>) {
 		chomp ($inLine);
-		if ($numOnly =~ /^m/i) {
+		if ($numOnly =~ /^m/i || $numOnly =~ /^d/i) {
 			if (defined $lastVal) {
 				$graphVal = $inLine - $lastVal;
 				$totalValues += $graphVal;
@@ -558,7 +558,7 @@ sub doArgs {
 	print "         [--size={sm|med|lg|full} | --width=<width> --height=<height>]\n";
 	print "         [--color] [--palette=r,k,c,p,g]\n";
 	print "         [--tokenize=<tokenChar>]\n";
-	print "         [--graph[=[kv|vk]] [--numonly[=mon|abs]]\n";
+	print "         [--graph[=[kv|vk]] [--numonly[=derivative,diff|abs,absolute,actual]]\n";
 	print "         [--char=<barChars>|<substitutionString>]\n";
 	print "         [--help] [--verbose]\n";
 	print "  --keys=K       every $keyPruneInterval values added, prune hash to K keys (default 5000)\n";
@@ -583,8 +583,8 @@ sub doArgs {
 	print "        word     ^[A-Z,a-z]+\$ - tokens/lines must be entirely alphabetic\n";
 	print "        num      ^\\d+\$        - tokens/lines must be entirely numeric\n";
 	print "  --numonly[=N]  input is numerics, simply graph values without labels\n";
-	print "        abs      input is absolute values (default)\n";
-	print "        mon      input monotonically-increasing, graph differences (of 2nd and later values)\n";
+	print "        actual   input is just values (default - abs, absolute are synonymous to actual)\n";
+	print "        diff     input monotonically-increasing, graph differences (of 2nd and later values)\n";
 	print "  --palette=P    comma-separated list of ANSI colour values for portions of the output\n";
 	print "                 in this order: regular, key, count, percent, graph. implies --color.\n";
 	print "  --rcfile=F     use this rcfile instead of \$HOME/.distributionrc - must be first argument!\n";
