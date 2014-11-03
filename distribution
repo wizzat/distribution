@@ -368,7 +368,9 @@ sub readNumerics {
 
 		# we just build a list where the keys are line num and values are the
 		# value
-		$valuesDict->{$totalObjects} = $graphVal;
+		if ($totalObjects > 0) {
+			$valuesDict->{$totalObjects} = $graphVal;
+		}
 	}
 }
 

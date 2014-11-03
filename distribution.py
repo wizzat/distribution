@@ -259,7 +259,9 @@ class InputReader(object):
 				graphVal = line
 
 			if graphVal > maxVal: maxVal = graphVal
-			outList.append(graphVal)
+
+			if s.totalObjects > 0:
+				outList.append(graphVal)
 			s.totalObjects += 1
 
 		# simple graphical output
