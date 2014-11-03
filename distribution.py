@@ -29,23 +29,66 @@ class Histogram(object):
 	def __init__(self):
 		pass
 
+	def histogram_bar(self, s, histWidth, maxVal, barVal):
+		# given a value and max, return string for histogram bar of the proper
+		# number of characters, including unicode partial-width characters
+		returnBar = ''
+
+		# first case is partial-width chars
+		if s.charWidth < 1:
+			zeroChar = s.graphChars[-1]
+		elif len(s.histogramChar) > 1 and s.unicodeMode == False:
+			zeroChar = s.histogramChar[0]
+			oneChar = s.histogramChar[1]
+		else:
+			zeroChar = s.histogramChar
+			oneChar = s.histogramChar
+
+		# write out the full-width integer portion of the histogram
+		if s.logarithmic:
+			maxLog = math.log(maxVal)
+			intWidth = int(math.log(barVal) / maxLog * histWidth)
+			remainderWidth = (math.log(barVal) / maxLog * histWidth) - intWidth
+		else:
+			intWidth = int(barVal * 1.0 / maxVal * histWidth)
+			remainderWidth = (barVal * 1.0 / maxVal * histWidth) - intWidth
+
+		# write the zeroeth character intWidth times...
+		returnBar += zeroChar * intWidth
+
+		# we always have at least one remaining char for histogram - if
+		# we have full-width chars, then just print it, otherwise do a
+		# calculation of how much remainder we need to print
+		#
+		# FIXME: The remainder partial char printed does not take into
+		# account logarithmic scale.
+		if s.charWidth == 1:
+			returnBar += oneChar
+		elif s.charWidth < 1:
+			# this is high-resolution, so figure out what remainder we
+			# have to represent
+			if remainderWidth > s.charWidth:
+				whichChar = int(remainderWidth / s.charWidth)
+				returnBar += s.graphChars[whichChar]
+
+		return returnBar
+
 	def write_hist(self, s, tokenDict):
 		maxTokenLen = 0
 		outputDict = {}
 
 		numItems = 0
 		maxVal = 0
+		s.totalValues = int(s.totalValues)
+
 		for k in sorted(tokenDict, key=tokenDict.get, reverse=True):
 			if k:
 				outputDict[k] = tokenDict[k]
-				if len(k) > maxTokenLen: maxTokenLen = len(k)
+				if len(str(k)) > maxTokenLen: maxTokenLen = len(str(k))
 				if outputDict[k] > maxVal: maxVal = outputDict[k]
 				numItems += 1
 				if numItems >= s.height:
 					break
-
-		# grab log of maxVal in case logarithmic graphs
-		if s.logarithmic: maxLog = math.log(maxVal)
 
 		s.endTime = int(time.time() * 1000)
 		totalMillis = s.endTime - s.startTime
@@ -77,7 +120,7 @@ class Histogram(object):
 					sys.stderr.write("Histogram\n")
 
 				sys.stdout.write(s.keyColour)
-				sys.stdout.write(k.rjust(maxTokenLen) + "|")
+				sys.stdout.write(str(k).rjust(maxTokenLen) + "|")
 				sys.stdout.write(s.ctColour)
 
 				outVal = "%s" % outputDict[k]
@@ -86,43 +129,9 @@ class Histogram(object):
 				pct = "(%2.2f%%)" % (outputDict[k] * 1.0 / s.totalValues * 100)
 				sys.stdout.write(s.pctColour)
 				sys.stdout.write(pct.rjust(maxPctWidth) + " ")
+
 				sys.stdout.write(s.graphColour)
-
-				# first case is partial-width chars
-				if s.charWidth < 1:
-					zeroChar = s.graphChars[-1]
-				elif len(s.histogramChar) > 1 and s.unicodeMode == False:
-					zeroChar = s.histogramChar[0]
-					oneChar = s.histogramChar[1]
-				else:
-					zeroChar = s.histogramChar
-					oneChar = s.histogramChar
-
-				# write out the full-width integer portion of the histogram
-				if s.logarithmic:
-					intWidth = int(math.log(outputDict[k]) / maxLog * histWidth)
-					remainderWidth = (math.log(outputDict[k]) / maxLog * histWidth) - intWidth
-				else:
-					intWidth = int(outputDict[k] * 1.0 / maxVal * histWidth)
-					remainderWidth = (outputDict[k] * 1.0 / maxVal * histWidth) - intWidth
-
-				# write the zeroeth character intWidth times...
-				sys.stdout.write(zeroChar * intWidth)
-
-				# we always have at least one remaining char for histogram - if
-				# we have full-width chars, then just print it, otherwise do a
-				# calculation of how much remainder we need to print
-				#
-				# FIXME: The remainder partial char printed does not take into
-				# account logarithmic scale.
-				if s.charWidth == 1:
-					sys.stdout.write(oneChar)
-				elif s.charWidth < 1:
-					# this is high-resolution, so figure out what remainder we
-					# have to represent
-					if remainderWidth > s.charWidth:
-						whichChar = int(remainderWidth / s.charWidth)
-						sys.stdout.write(s.graphChars[whichChar])
+				sys.stdout.write(self.histogram_bar(s, histWidth, maxVal, outputDict[k]))
 
 				sys.stdout.write(s.regularColour)
 				sys.stdout.write("\n")
@@ -223,6 +232,33 @@ class InputReader(object):
 					s.totalObjects += 1
 				except:
 					sys.stderr.write(" E Input malformed+discarded (perhaps pass -g=vk?): %s\n" % line)
+
+	def read_numerics(self, s, h):
+		lastVal = 0
+		maxVal = 0
+		outList = []
+		for line in sys.stdin:
+			try:
+				line = float(line.rstrip())
+			except:
+				line = lastVal
+
+			graphVal = 0
+			if s.numOnly == 'mon':
+				if s.totalObjects > 0:
+					graphVal = line - lastVal
+				lastVal = line
+			else:
+				graphVal = line
+
+			if graphVal > maxVal: maxVal = graphVal
+			outList.append(graphVal)
+			s.totalObjects += 1
+
+		for k in outList:
+			sys.stdout.write(s.graphColour)
+			sys.stdout.write(h.histogram_bar(s, s.width - 2, maxVal, k) + "\n")
+			sys.stdout.write(s.regularColour)
 
 
 class Settings(object):
@@ -428,13 +464,16 @@ def doUsage(s):
 def main(argv):
 	s = Settings()
 	i = InputReader()
+	h = Histogram()
 
 	if s.graphValues:
 		i.read_pretallied_tokens(s)
+	elif s.numOnly:
+		i.read_numerics(s, h)
+		sys.exit(0)
 	else:
 		i.tokenize_input(s)
 
-	h = Histogram()
 	h.write_hist(s, i.tokenDict)
 
 scriptName = sys.argv[0]
