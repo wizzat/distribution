@@ -243,6 +243,8 @@ class InputReader(object):
 		# showing a graph of a series of numbers
 		lastVal = 0
 		maxVal = 0
+		maxWidth = 0
+		sumVal = 0
 		outList = []
 		for line in sys.stdin:
 			try:
@@ -258,7 +260,11 @@ class InputReader(object):
 			else:
 				graphVal = line
 
-			if graphVal > maxVal: maxVal = graphVal
+			if graphVal > maxVal:
+				maxVal = graphVal
+				maxWidth = len(str(graphVal))
+
+			sumVal += int(graphVal)
 
 			if s.totalObjects > 0:
 				outList.append(graphVal)
@@ -267,9 +273,12 @@ class InputReader(object):
 		# simple graphical output
 		for k in outList:
 			sys.stdout.write(s.keyColour)
-			sys.stdout.write("%5s " % int(k))
+			sys.stdout.write(str(int(k)).rjust(maxWidth))
+			pct = "(%2.2f%%)" % (float(k) / float(sumVal) * 100)
+			sys.stdout.write(s.pctColour)
+			sys.stdout.write(pct.rjust(9) + " ")
 			sys.stdout.write(s.graphColour)
-			sys.stdout.write(h.histogram_bar(s, s.width - 8, maxVal, k) + "\n")
+			sys.stdout.write(h.histogram_bar(s, s.width - 16, maxVal, k) + "\n")
 			sys.stdout.write(s.regularColour)
 
 
@@ -455,7 +464,7 @@ def doUsage(s):
 	print "        diff     input monotonically-increasing, graph differences (of 2nd and later values)"
 	print "  --palette=P    comma-separated list of ANSI colour values for portions of the output"
 	print "                 in this order: regular, key, count, percent, graph. implies --color."
-	print "  --rcfile=F     use this rcfile instead of \$HOME/.distributionrc - must be first argument!"
+	print "  --rcfile=F     use this rcfile instead of ~/.distributionrc - must be first argument!"
 	print "  --size=S       size of histogram, can abbreviate to single character, overridden by --width/--height"
 	print "        small    40x10"
 	print "        medium   80x20"
