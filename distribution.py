@@ -278,7 +278,7 @@ class InputReader(object):
 			sys.stdout.write(s.pctColour)
 			sys.stdout.write(pct.rjust(9) + " ")
 			sys.stdout.write(s.graphColour)
-			sys.stdout.write(h.histogram_bar(s, s.width - 16, maxVal, k) + "\n")
+			sys.stdout.write(h.histogram_bar(s, s.width - 11 - maxWidth, maxVal, k) + "\n")
 			sys.stdout.write(s.regularColour)
 
 
