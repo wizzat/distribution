@@ -9,13 +9,19 @@
 # for indent, spaces for formatting.
 
 """
-To generate graphs directly in the (ASCII-based) terminal. If you type:
+Generate Graphs Directly in the (ASCII- or Unicode-based) Terminal
+
+If you find yourself typing:
   [long | list | of | commands | sort | uniq -c | sort -rn]
-in the terminal, then you could replace the end bit of the command:
+
+Replace:
   [| sort | uniq -c | sort -rn]
-with
+
+With:
   [| distribution]
-and very likely be happier with what you see.
+
+Then bask in the glory of your new-found data visualization. There are
+other use cases as well.
 """
 
 import math,os,re,sys,time
@@ -61,7 +67,7 @@ class Histogram(object):
 		# calculation of how much remainder we need to print
 		#
 		# FIXME: The remainder partial char printed does not take into
-		# account logarithmic scale.
+		# account logarithmic scale (can humans notice?).
 		if s.charWidth == 1:
 			returnBar += oneChar
 		elif s.charWidth < 1:
@@ -294,7 +300,7 @@ class Settings(object):
 		self.histogramChar = '-'
 		self.colourisedOutput = False
 		self.logarithmic = False
-		self.numOnly = ''
+		self.numOnly = 'XXX'
 		self.verbose = False
 		self.graphValues = ''
 		self.size = ''
@@ -438,7 +444,7 @@ def doUsage(s):
 	print "         [--graph[=[kv|vk]] [--numonly[=derivative,diff|abs,absolute,actual]]"
 	print "         [--char=<barChars>|<substitutionString>]"
 	print "         [--help] [--verbose]"
-	print "  --keys=K       every %d values added, prune hash to K keys (default 5000)\n" % (s.keyPruneInterval)
+	print "  --keys=K       every %d values added, prune hash to K keys (default 5000)" % (s.keyPruneInterval)
 	print "  --char=C       character(s) to use for histogram character, some substitutions follow:"
 	print "        pl       Use 1/3-width unicode partial lines to simulate 3x actual terminal width"
 	print "        pb       Use 1/8-width unicode partial blocks to simulate 8x actual terminal width"
@@ -480,12 +486,12 @@ def doUsage(s):
 	print ""
 	print "Samples:"
 	print "  du -sb /etc/* | %s --palette=0,37,34,33,32 --graph" % (scriptName)
-	print "  du -sk /etc/* | awk '{print \$2\" \"\$1}' | %s --graph=kv" % (scriptName)
+	print "  du -sk /etc/* | awk '{print $2\" \"$1}' | %s --graph=kv" % (scriptName)
 	print "  zcat /var/log/syslog*gz | %s --char=o --tokenize=white" % (scriptName)
-	print "  zcat /var/log/syslog*gz | awk '{print \$5}'  | %s --t=word --m-word --h=15 --c=/" % (scriptName)
-	print "  zcat /var/log/syslog*gz | cut -c 1-9        | %s --width=60 --height=10 --char=em" % (scriptName)
-	print "  find /etc -type f       | cut -c 6-         | %s --tokenize=/ --w=90 --h=35 --c=dt" % (scriptName)
-	print "  cat /usr/share/dict/words | awk '{print length(\$1)}' | %s --c=* --w=50 --h=10 | sort -n" % (scriptName)
+	print "  zcat /var/log/syslog*gz | awk '{print \$5}'  | %s -t=word -m-word -h=15 -c=/" % (scriptName)
+	print "  zcat /var/log/syslog*gz | cut -c 1-9        | %s -width=60 -height=10 -char=em" % (scriptName)
+	print "  find /etc -type f       | cut -c 6-         | %s -tokenize=/ -w=90 -h=35 -c=dt" % (scriptName)
+	print "  cat /usr/share/dict/words | awk '{print length(\$1)}' | %s -c=* -w=50 -h=10 | sort -n" % (scriptName)
 	print ""
 
 # simple argument parsing and call top-level routines
@@ -496,7 +502,7 @@ def main(argv):
 
 	if s.graphValues:
 		i.read_pretallied_tokens(s)
-	elif s.numOnly:
+	elif s.numOnly != 'XXX':
 		i.read_numerics(s, h)
 		sys.exit(0)
 	else:
