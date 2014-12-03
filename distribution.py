@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-# vim: set noexpandtab:
+# vim: set noexpandtab sw=4 ts=4:
 # --
 # A recent battle with vim and a Go program finally settled this for me.
 # Tabs for indent, spaces for formatting. If you change your shiftwidth and
@@ -20,17 +19,16 @@ Replace:
 With:
   [| distribution]
 
-Then bask in the glory of your new-found data visualization. There are
-other use cases as well.
+Then bask in the glory of your new-found data visualization. There are other
+use cases as well.
 """
 
 import math,os,re,sys,time
 
 class Histogram(object):
 	"""
-	Takes the tokenDict built in the InputReader class and goes
-	through it, printing a histogram for each of the highest height
-	entries
+	Takes the tokenDict built in the InputReader class and goes through it,
+	printing a histogram for each of the highest height entries
 	"""
 	def __init__(self):
 		pass

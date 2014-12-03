@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# vim: set noexpandtab:
+# vim: set noexpandtab sw=4 ts=4:
 # --
 # A recent battle with vim and a Go program finally settled this for me.
 # Tabs for indent, spaces for formatting. If you change your shiftwidth and
