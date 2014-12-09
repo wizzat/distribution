@@ -332,6 +332,25 @@ class Settings(object):
 		self.partialBlocks =    ["▏", "▎", "▍", "▌", "▋", "▊", "▉", "█"] # char=pb
 		self.partialLines =     ["╸", "╾", "━"] # char=hl
 
+		# rcfile grabbing/parsing if specified
+		if '--rcfile' in sys.argv[1]:
+			rcFile = sys.argv[1].split('=')[1]
+			rcFile = os.path.expanduser(rcFile)
+		else:
+			rcFile = os.environ.get('HOME') + '/.distributionrc'
+
+		# parse opts from the rcFile if it exists
+		try:
+			rcfileOptList = open(rcFile).readlines()
+			for rcOpt in rcfileOptList:
+				rcOpt = rcOpt.rstrip()
+				rcOpt = rcOpt.split('#')[0]
+				if rcOpt != '':
+					sys.argv.append(rcOpt)
+		except:
+			# don't die or in fact do anything if rcfile doesn't exist
+			pass
+
 		# manual argument parsing easier than getopts IMO
 		for arg in sys.argv:
 			if arg == '-h':
