@@ -53,6 +53,34 @@ Features
    4. Configurable chart sizes including "fill up my whole screen."
 
 
+Installation
+============
+
+The simplest is to put the script into your homedir on the machine you plan to
+run the script:
+
+```
+$ scp distribution $destMachine
+$ ssh $destMachine
+[destmch]$ mkdir bin
+[destmch]$ mv distribution bin/
+[destmch]$ export PATH=$PATH:$HOME/bin
+```
+
+However, it is fine to place the script anywhere in your $PATH. If you have
+root access, placing it into `/usr/local/bin` seems prudent as it will give
+access to all users on that machine:
+
+```
+$ scp distribution root@$destMachine:/usr/local/bin/
+```
+
+If you prefer the Python version, replace `distribution` in the above
+instructions with `distribution.py`, but rename your remote script to
+`distribution` if you don't want to specify the extension every time you
+execute the script.
+
+
 Options
 =======
 
