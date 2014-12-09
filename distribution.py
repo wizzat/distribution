@@ -51,8 +51,12 @@ class Histogram(object):
 		# write out the full-width integer portion of the histogram
 		if s.logarithmic:
 			maxLog = math.log(maxVal)
-			intWidth = int(math.log(barVal) / maxLog * histWidth)
-			remainderWidth = (math.log(barVal) / maxLog * histWidth) - intWidth
+			if barVal > 0:
+				barLog = math.log(barVal)
+			else:
+				barLog = 0
+			intWidth = int(barLog / maxLog * histWidth)
+			remainderWidth = (barLog / maxLog * histWidth) - intWidth
 		else:
 			intWidth = int(barVal * 1.0 / maxVal * histWidth)
 			remainderWidth = (barVal * 1.0 / maxVal * histWidth) - intWidth

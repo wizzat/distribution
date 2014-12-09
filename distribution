@@ -277,7 +277,11 @@ for ($i = 0; $i < $height; $i++) {
 
 	# determine the bar width based on key occurence
 	if ($logarithmic) {
-		$barWidth->[$i] = log($count) / $maxLog;
+		if ($count > 0) {
+			$barWidth->[$i] = log($count) / $maxLog;
+		} else {
+			$barWidth->[$i] = 0;
+		}
 	} else {
 		$barWidth->[$i] = $count / $maxVal;
 	}
