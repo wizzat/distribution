@@ -110,6 +110,8 @@ class Histogram(object):
 		maxValueWidth = 0
 		maxPctWidth = 0
 		for k in sorted(outputDict, key=outputDict.get, reverse=True):
+			# can't remember what feature "if k:" adds - i think there's an
+			# off-by-one death the script sometimes suffers without it.
 			if k:
 				if maxValueWidth == 0:
 					testString = "%s" % outputDict[k]
@@ -434,6 +436,9 @@ class Settings(object):
 		# colour palette
 		if self.colourisedOutput == True:
 			cl = self.colourPalette.split(',')
+			# ANSI color code is ESC+[+NN+m where ESC=chr(27), [ and m are
+			# the literal characters, and NN is a two-digit number, typically
+			# from 31 to 37 - why is this knowledge still useful in 2014?
 			cl = [chr(27) + '[' + e + 'm' for e in cl]
 			(self.regularColour, self.keyColour, self.ctColour, self.pctColour, self.graphColour) = cl
 
@@ -517,20 +522,26 @@ def doUsage(s):
 
 # simple argument parsing and call top-level routines
 def main(argv):
+	# instantiate our classes
 	s = Settings()
 	i = InputReader()
 	h = Histogram()
 
 	if s.graphValues:
+		# user passed g=vk or g=kv
 		i.read_pretallied_tokens(s)
 	elif s.numOnly != 'XXX':
+		# s.numOnly was specified by the user
 		i.read_numerics(s, h)
+		# read_numerics will have output a graph already, so exit
 		sys.exit(0)
 	else:
+		# this is the original behaviour of distribution
 		i.tokenize_input(s)
 
 	h.write_hist(s, i.tokenDict)
 
+# what is this magic?
 scriptName = sys.argv[0]
 if __name__ == "__main__":
 	main(sys.argv[1:])
