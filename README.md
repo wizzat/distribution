@@ -635,7 +635,7 @@ will probably also soon do:
 $ cat ~/tmp/numberSeries.txt | xargs
 01 05 06 09 12 22 28 32 34 30 37 44 48 54 63 70 78 82 85 88 89 89 90 92 95
 $ cat ~/tmp/numberSeries.txt \
-	| ~/Dev/distribution/distribution.py --numonly -c='|o' -s=s
+    | ~/Dev/distribution/distribution.py --numonly -c='|o' -s=s
    5  (0.39%) ||o
    6  (0.47%) ||o
    9  (0.70%) ||||o
@@ -688,18 +688,55 @@ $ cat ~/tmp/numberSeries.txt \
    3  (3.19%) |||||||||||||o
 ```
 
+HDFS DU Example
+===============
+
+HDFS files are often rather large, so I first change the numeric file size to
+megabytes by dividing by 1048576. I must also change it to an int value, since
+distribution doesn't currently deal with non-integer counts.
+
+Also, we are pre-parsing the du output to give us only the megabytes count and
+the final entry in the filename. `awk -F /` supports that.
+
+```
+$ hdfs dfs -du /apps/hive/warehouse/aedb/hitcounts_byday/cookie_type=shopper \
+    | awk -F / '{print int($1/1048576) " " $8}' \
+    | distribution -g -c='-~' --height=20 \
+    | sort
+          Key|Ct      (Pct)   Histogram
+dt=2014-11-15|3265438 (2.53%) ----------------------------------------------~
+dt=2014-11-16|3241614 (2.51%) ----------------------------------------------~
+dt=2014-11-20|2964636 (2.29%) ------------------------------------------~
+dt=2014-11-21|3049912 (2.36%) -------------------------------------------~
+dt=2014-11-22|3292621 (2.55%) -----------------------------------------------~
+dt=2014-11-23|3319538 (2.57%) -----------------------------------------------~
+dt=2014-11-24|3070654 (2.38%) -------------------------------------------~
+dt=2014-11-25|3086090 (2.39%) --------------------------------------------~
+dt=2014-11-27|3113888 (2.41%) --------------------------------------------~
+dt=2014-11-28|3124426 (2.42%) --------------------------------------------~
+dt=2014-11-29|3431859 (2.66%) -------------------------------------------------~
+dt=2014-11-30|3391117 (2.62%) ------------------------------------------------~
+dt=2014-12-01|3167744 (2.45%) ---------------------------------------------~
+dt=2014-12-02|3134248 (2.43%) --------------------------------------------~
+dt=2014-12-03|3023733 (2.34%) -------------------------------------------~
+dt=2014-12-04|3022274 (2.34%) -------------------------------------------~
+dt=2014-12-05|3040776 (2.35%) -------------------------------------------~
+dt=2014-12-06|3054159 (2.36%) -------------------------------------------~
+dt=2014-12-09|3065252 (2.37%) -------------------------------------------~
+dt=2014-12-10|3316703 (2.57%) -----------------------------------------------~
+```
+
+
 To-Do List
 ==========
 
-This script is 1.0 after only about a week of life. New features should be
-carefully considered and weighed against their likelihood of causing bugs.
-That is to say, new features are unlikely to be added, as the existing
-functionality already arguably is a superset of what's necessary.  Still, there
-are some things that need to be done.
+New features are unlikely to be added, as the existing functionality already
+arguably is a superset of what's necessary. Still, there are some things that
+need to be done.
 
- * No Time::HiRes Perl module? Don't die. Much harder than it should be. Invalidated by next to-do.
- * Get script included in package managers.
- * On large files it might be slow. Speed enhancements nice.
+ * No Time::HiRes Perl module? Don't die. Much harder than it should be.
+   Negated by next to-do.
+ * Get scripts into package managers.
 
 
 Porting
