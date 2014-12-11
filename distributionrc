@@ -10,10 +10,13 @@
 
 # obvious options?
 --color
---size=med
+--size=full
+
+# two-char choice
+--char=-o
 
 # cool unicode partial-width characters
---char=pb
+# --char=pb
 # other interesting-but-unusual graph bar choices
 #--char=◵
 #--char=■
@@ -23,5 +26,5 @@
 
 # ANSI colour palette, in this order:
 # regular, key, count, percent, graph
-#--palette=0,0,32,35,34
+--palette=0,32,34,35,37
 

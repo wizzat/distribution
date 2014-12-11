@@ -333,7 +333,7 @@ class Settings(object):
 		self.partialLines =     ["╸", "╾", "━"] # char=hl
 
 		# rcfile grabbing/parsing if specified
-		if '--rcfile' in sys.argv[1]:
+		if len(sys.argv) > 1 and '--rcfile' in sys.argv[1]:
 			rcFile = sys.argv[1].split('=')[1]
 			rcFile = os.path.expanduser(rcFile)
 		else:
@@ -400,7 +400,7 @@ class Settings(object):
 			self.width = int(self.width)
 			self.height = int(self.height) - 3
 			# need room for the verbosity output
-			if self.verbose == True: self.height -= 5
+			if self.verbose == True: self.height -= 4
 			# in case tput went all bad, ensure some minimum size
 			if self.width < 40: self.width = 40
 			if self.height < 10: self.height = 10
