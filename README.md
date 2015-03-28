@@ -53,7 +53,6 @@ An already-tokenised input, one-per-line, tally and graph them.
 
 ```
 $ cat file | distribution -s=small -v
-[time@dominate.local 12:35:36 ~/tmp] :) cat file | distribution -s=small -v
 tokens/lines examined: 21
  tokens/lines matched: 21
        histogram keys: 18
