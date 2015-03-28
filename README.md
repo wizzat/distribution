@@ -20,27 +20,80 @@ of the frequency of input tokens) but it has since been expanded to generate
 time-series graphs (or, in fact, graphs with any arbitrary "x-axis") as well.
 
 At first, there will be only two scripts, the originals written in Perl and
-Python by Tim Ellis. But if others port it to Ocaml, COBOL, or Brainfuck, then
-we'll include those versions here.
+Python by Tim Ellis. Any other versions people are willing to create will be placed
+here. The next likely candidate language is C++.
 
-There are a few typical use cases for graphs in a terminal:
+There are a few typical use cases for graphs in a terminal as we'll lay out here:
 
-   0. A stream of ASCII bytes, tokenize it, tally the matching tokens, and graph
-      the result.
-   1. An already-tokenised input, one-per-line, tally and graph them.
-   2. A list of tallies + tokens, one-per-line. Create a graph with labels.
-   3. A list of tallies only. Create a graph without labels.
+## Tokenize and Graph
 
-For the final case, there is another project: https://github.com/holman/spark that
-will produce simpler, more-compact graphs. This script will produce rather lengthy
-and verbose graphs with far more resolution, which you may prefer.
+A stream of ASCII bytes, tokenize it, tally the matching tokens, and graph
+the result. For this example, assume "file" is a list of words with one word
+per line, so passing it to "xargs" makes it all-one-line.
 
-The mapping between the use-cases above and the commandline options are:
+```
+$ cat file | xargs #put all words on one line
+this is an arbitrary stream of tokens. this will be graphed with tokens pulled out. this is the first use case.
+$ cat file | xargs | distribution --tokenize=word --match=word --size=small -v
+tokens/lines examined: 25
+ tokens/lines matched: 21
+       histogram keys: 17
+              runtime: 8.00ms
+      Key|Ct (Pct)    Histogram
+     this|3 (14.29%) -----------------------------------------------------------------------o
+       is|2  (9.52%) ---------------------------------------o
+   tokens|2  (9.52%) ---------------------------------------o
+  graphed|1  (4.76%) -------o
+     will|1  (4.76%) -------o
+```
 
-   0. Tokenize/match the input: --tokenize and --match.
-   1. Tokens are one-per-line: default behaviour. No commandline switches needed.
-   2. Tokens/Tallies (keys/values) one-per-line: --graph.
-   3. Tallies only (no tokens/keys/labels): --numonly.
+## Aggregate and Graph
+
+An already-tokenised input, one-per-line, tally and graph them.
+
+```
+$ cat file | distribution -s=small -v
+[time@dominate.local 12:35:36 ~/tmp] :) cat file | distribution -s=small -v
+tokens/lines examined: 21
+ tokens/lines matched: 21
+       histogram keys: 18
+              runtime: 14.00ms
+      Key|Ct (Pct)    Histogram
+     this|3 (14.29%) -----------------------------------------------------------------------o
+       is|2  (9.52%) ---------------------------------------o
+  graphed|1  (4.76%) -------o
+       be|1  (4.76%) -------o
+```
+
+## Graph Already-Aggregated/Counted Tokens
+
+A list of tallies + tokens, one-per-line. Create a graph with labels. This is
+the typical output of several Unix commands such as "du."
+
+```
+$ du -s /etc/* | distribution -g -s=small -v
+tokens/lines examined: 105
+ tokens/lines matched: 6,168
+       histogram keys: 105
+              runtime: 14.00ms
+           Key|Ct   (Pct)    Histogram
+     /etc/cups|4440 (71.98%) ----------------------------------------------------------------o
+ /etc/services| 376  (6.10%) -----o
+ /etc/openldap| 232  (3.76%) ---o
+     /etc/chef| 192  (3.11%) --o
+  /etc/apache2| 176  (2.85%) --o
+  /etc/postfix| 144  (2.33%) --o
+```
+
+## Graph a List of Integers
+
+A list of tallies only. Create a graph without labels. This is typical if you just
+have a stream of numbers and wonder what they look like. The `--numonly` switch is
+used to toggle this behaviour.
+
+There is a different project: https://github.com/holman/spark that will produce
+simpler, more-compact graphs. By contrast, this project will produce rather
+lengthy and verbose graphs with far more resolution, which you may prefer.
 
 
 Features
@@ -56,12 +109,15 @@ Features
 Installation
 ============
 
-The simplest is to put the script into your homedir on the machine you plan to
-run the script:
+If you use homebrew, `brew install distribution` should do the trick, although
+if you already have Perl or Python installed, you can simply download the file
+and put it into your path.
+
+To put the script into your homedir on the machine you plan to run the script:
 
 ```
 $ wget https://raw.githubusercontent.com/philovivero/distribution/master/distribution.py
-$ sudo mv distribution /usr/local/bin/distribution
+$ sudo mv distribution.py /usr/local/bin/distribution
 $ alias worddist="distribution -t=word"
 ```
 
@@ -377,7 +433,7 @@ visual nature can help. For example, there is a line that looks like this in the
 slow query log:
 
 ```
-# Query_time: 5.260353  Lock_time: 0.000052  Rows_sent: 0  Rows_examined: 2414  Rows_affected: 1108  Rows_read: 2
+ # Query_time: 5.260353  Lock_time: 0.000052  Rows_sent: 0  Rows_examined: 2414  Rows_affected: 1108  Rows_read: 2
 ```
 
 It might be useful to see how many queries ran for how long in increments of
