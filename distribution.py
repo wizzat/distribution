@@ -348,7 +348,7 @@ class Settings(object):
 				rcOpt = rcOpt.rstrip()
 				rcOpt = rcOpt.split('#')[0]
 				if rcOpt != '':
-					sys.argv.append(rcOpt)
+					sys.argv.insert(0, rcOpt)
 		except:
 			# don't die or in fact do anything if rcfile doesn't exist
 			pass
