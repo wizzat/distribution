@@ -773,9 +773,9 @@ dt=2014-12-10|3316703 (2.57%) -----------------------------------------------~
 To-Do List
 ==========
 
-New features are unlikely to be added, as the existing functionality already
-arguably is a superset of what's necessary. Still, there are some things that
-need to be done.
+New features are unlikely to be added, as the existing functionality is already
+arguably a superset of what's necessary. Still, there are some things that need
+to be done.
 
  * No Time::HiRes Perl module? Don't die. Much harder than it should be.
    Negated by next to-do.
@@ -799,12 +799,8 @@ but more-efficient methods are welcome.
 I imagine, in order of nice-to-haveness:
 
  * C or C++
- * Java
- * Ruby
+ * Go
  * Lisp
  * Ocaml
- * Brainfuck
-
-Brainfuck I want as a point of geek pride. Please don't make me learn it. Give
-me a port!
-
+ * Java
+ * Ruby
