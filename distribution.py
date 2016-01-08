@@ -355,7 +355,7 @@ class Settings(object):
 
 		# manual argument parsing easier than getopts IMO
 		for arg in sys.argv:
-			if arg == '-h':
+			if arg in ('-h', '--help'):
 				doUsage(self)
 				sys.exit(0)
 			elif arg in ("-c", "--color", "--colour"):
