@@ -348,14 +348,14 @@ class Settings(object):
 				rcOpt = rcOpt.rstrip()
 				rcOpt = rcOpt.split('#')[0]
 				if rcOpt != '':
-					sys.argv.append(rcOpt)
+					sys.argv.insert(0, rcOpt)
 		except:
 			# don't die or in fact do anything if rcfile doesn't exist
 			pass
 
 		# manual argument parsing easier than getopts IMO
 		for arg in sys.argv:
-			if arg == '-h':
+			if arg in ('-h', '--help'):
 				doUsage(self)
 				sys.exit(0)
 			elif arg in ("-c", "--color", "--colour"):
