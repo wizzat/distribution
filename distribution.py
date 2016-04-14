@@ -90,6 +90,8 @@ class Histogram(object):
 		s.totalValues = int(s.totalValues)
 
 		for k in sorted(tokenDict, key=tokenDict.get, reverse=True):
+			# can't remember what feature "if k:" adds - i think there's an
+			# off-by-one death the script sometimes suffers without it.
 			if k:
 				outputDict[k] = tokenDict[k]
 				if len(str(k)) > maxTokenLen: maxTokenLen = len(str(k))
