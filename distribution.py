@@ -124,13 +124,13 @@ class Histogram(object):
 					histWidth = s.width - (maxTokenLen+1) - (maxValueWidth+1) - (maxPctWidth+1) - 1
 
 					# output a header
-					sys.stderr.write("Key".rjust(maxTokenLen) + "|")
+					sys.stderr.write("Key".ljust(maxTokenLen) + "|")
 					sys.stderr.write("Ct".ljust(maxValueWidth) + " ")
 					sys.stderr.write("(Pct)".ljust(maxPctWidth) + " ")
 					sys.stderr.write("Histogram\n")
 
 				sys.stdout.write(s.keyColour)
-				sys.stdout.write(str(k).rjust(maxTokenLen) + "|")
+				sys.stdout.write(str(k).ljust(maxTokenLen) + "|")
 				sys.stdout.write(s.ctColour)
 
 				outVal = "%s" % outputDict[k]
