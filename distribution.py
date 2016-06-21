@@ -89,7 +89,13 @@ class Histogram(object):
 		maxVal = 0
 		s.totalValues = int(s.totalValues)
 
-		for k in sorted(tokenDict, key=tokenDict.get, reverse=True):
+		# given a dict, create a comparison tuple that sorts first by the value of a key,
+		# then by the key itself in case of a tie. this allows us to create deterministic sorts
+		# when we have multiple entries in our histogram with the same frequency.
+		def value_key_compare(dict):
+			return lambda key: (dict.get(key), key)
+
+		for k in sorted(tokenDict, key=value_key_compare(tokenDict), reverse=True):
 			# can't remember what feature "if k:" adds - i think there's an
 			# off-by-one death the script sometimes suffers without it.
 			if k:
@@ -111,7 +117,7 @@ class Histogram(object):
 		# the first entry will determine these values
 		maxValueWidth = 0
 		maxPctWidth = 0
-		for k in sorted(outputDict, key=outputDict.get, reverse=True):
+		for k in sorted(outputDict, key=value_key_compare(outputDict), reverse=True):
 			# can't remember what feature "if k:" adds - i think there's an
 			# off-by-one death the script sometimes suffers without it.
 			if k:
