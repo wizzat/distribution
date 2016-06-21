@@ -10,7 +10,7 @@
 
 # obvious options?
 --color
---size=full
+#--size=full
 
 # two-char choice
 --char=-o
