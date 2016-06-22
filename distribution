@@ -324,7 +324,12 @@ exit 0;
 
 # get the keys ordered - we'll only print the most common keys
 sub sortKeysByValueFrequency {
-	my @sortedKeys = reverse sort { int($valuesDict->{$a}) <=> int($valuesDict->{$b}) } keys %{$valuesDict};
+	# sort first by the value of a key, then by the key itself in case of a tie.
+	# this allows us to create deterministic sorts when we have multiple entries
+	# in our histogram with the same frequency. particularly important given that
+	# perl intentionally randomizes the order of dictionary keys, so not even a
+	# stable sort would save us.
+	my @sortedKeys = reverse sort { int($valuesDict->{$a}) <=> int($valuesDict->{$b}) || $a cmp $b } keys %{$valuesDict};
 	return @sortedKeys;
 }
 
