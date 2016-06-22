@@ -471,8 +471,8 @@ sub addCommas {
 # barWidth->[] - list of the widths of the bars
 sub outputGraph {
 	# print a header with alignment from key names
-	print STDERR "Key";
 	for ($j = 4; $j <= $maxKeyLen; $j++) { print STDERR " "; }
+	print STDERR "Key";
 	print STDERR "|Ct (Pct)";
 	for ($j = 7; $j <= $maxPreBarLen; $j++) { print STDERR " "; }
 	print STDERR "Histogram";
@@ -486,10 +486,10 @@ sub outputGraph {
 
 	for ($i = 0; $i < $height; $i++) {
 		# first the key that we aggregated
+		for ($j = length ($keyText->[$i]); $j < $maxKeyLen; $j++) { print " "; }
 		print $keyText->[$i];
 		print $regularColour;
 		# alignment
-		for ($j = length ($keyText->[$i]); $j < $maxKeyLen; $j++) { print " "; }
 		# separater between keys and count/pct
 		print "|";
 		print $ctColour;
