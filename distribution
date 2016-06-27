@@ -83,7 +83,7 @@ my $inLine;
 
 # if they want an rcfile, must be first arg
 my $rcFile = $ENV{"HOME"} . "/.distributionrc";
-if ($ARGV && $ARGV[0] =~ /^-+r(cfile)*=(.+)$/) { $rcFile = $2; }
+if (@ARGV && $ARGV[0] =~ /^-+r(cfile)*=(.+)$/) { $rcFile = $2; }
 
 # read in rcfile if it exists - it'll just be args
 if (open (IFILE, "< $rcFile")) {
