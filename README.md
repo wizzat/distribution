@@ -66,22 +66,26 @@ tokens/lines examined: 21
 
 ## Graph Already-Aggregated/Counted Tokens
 
-A list of tallies + tokens, one-per-line. Create a graph with labels. This is
+A list of tallies + tokens, one-per-line. Create a graph with labels. This matches
 the typical output of several Unix commands such as "du."
 
 ```
-$ du -s /etc/* | distribution -g -s=small -v
-tokens/lines examined: 105
- tokens/lines matched: 6,168
-       histogram keys: 105
-              runtime: 14.00ms
-           Key|Ct   (Pct)    Histogram
-     /etc/cups|4440 (71.98%) ----------------------------------------------------------------o
- /etc/services| 376  (6.10%) -----o
- /etc/openldap| 232  (3.76%) ---o
-     /etc/chef| 192  (3.11%) --o
-  /etc/apache2| 176  (2.85%) --o
-  /etc/postfix| 144  (2.33%) --o
+$ du -s /etc/*/ 2>/dev/null | distribution -g -v
+tokens/lines examined: 107
+ tokens/lines matched: 5,176
+       histogram keys: 107
+              runtime: 2.00ms
+                    Key|Ct  (Pct)    Histogram
+              /etc/ssl/|920 (17.77%) -------------------------------------------
+           /etc/init.d/|396  (7.65%) -------------------
+              /etc/apt/|284  (5.49%) -------------
+   /etc/nagios-plugins/|224  (4.33%) -----------
+              /etc/cis/|188  (3.63%) ---------
+           /etc/nagios/|180  (3.48%) ---------
+            /etc/fonts/|172  (3.32%) --------
+              /etc/ssh/|172  (3.32%) --------
+          /etc/default/|164  (3.17%) --------
+    /etc/console-setup/|132  (2.55%) -------
 ```
 
 ## Graph a List of Integers
