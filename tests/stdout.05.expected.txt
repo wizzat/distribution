@@ -1,0 +1,11 @@
+ 0[0m|[34m6 [35m(3.14%)   [37mppppc[32m
+ 1[0m|[34m46 [35m(24.08%) [37mppppppppppppppppppppppppppppppppc[32m
+ 2[0m|[34m27 [35m(14.14%) [37mppppppppppppppppppc[32m
+ 3[0m|[34m24 [35m(12.57%) [37mppppppppppppppppc[32m
+ 4[0m|[34m24 [35m(12.57%) [37mppppppppppppppppc[32m
+ 5[0m|[34m21 [35m(10.99%) [37mppppppppppppppc[32m
+ 6[0m|[34m21 [35m(10.99%) [37mppppppppppppppc[32m
+ 7[0m|[34m19 [35m(9.95%)  [37mpppppppppppppc[32m
+ 8[0m|[34m1 [35m(0.52%)   [37mc[32m
+ 9[0m|[34m1 [35m(0.52%)   [37mc[32m
+10[0m|[34m1 [35m(0.52%)   [37mc[0m

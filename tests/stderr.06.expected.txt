@@ -1,0 +1,5 @@
+tokens/lines examined: 56,960... ; hash prunes: 0tokens/lines examined: 113,920... ; hash prunes: 0tokens/lines examined: 171,773... ; hash prunes: 0tokens/lines examined: 184,800    
+ tokens/lines matched: 184,800
+       histogram keys: 68
+              runtime: 3,243.41ms
+Key|Ct (Pct)       Histogram[32m
