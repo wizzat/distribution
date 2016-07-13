@@ -117,7 +117,9 @@ class Histogram(object):
 		# the first entry will determine these values
 		maxValueWidth = 0
 		maxPctWidth = 0
-		for k in sorted(outputDict, key=value_key_compare(outputDict), reverse=True):
+		sortedOutput = sorted(outputDict, key=value_key_compare(outputDict), reverse=True)
+		for i in range(0, len(sortedOutput)):
+			k = sortedOutput[i]
 			# can't remember what feature "if k:" adds - i think there's an
 			# off-by-one death the script sometimes suffers without it.
 			if k:
@@ -135,10 +137,16 @@ class Histogram(object):
 					sys.stderr.write("Key".rjust(maxTokenLen) + "|")
 					sys.stderr.write("Ct".ljust(maxValueWidth) + " ")
 					sys.stderr.write("(Pct)".ljust(maxPctWidth) + " ")
-					sys.stderr.write("Histogram\n")
+					sys.stderr.write("Histogram")
 
-				sys.stdout.write(s.keyColour)
-				sys.stdout.write(str(k).rjust(maxTokenLen) + "|")
+	                                # get ready for the output, but sorting gets hosed if we print the
+	                                # colour code before the key, so put it on the line before
+					sys.stderr.write(s.keyColour)
+					sys.stderr.write("\n")
+
+				sys.stdout.write(str(k).rjust(maxTokenLen))
+				sys.stdout.write(s.regularColour)
+				sys.stdout.write("|")
 				sys.stdout.write(s.ctColour)
 
 				outVal = "%s" % outputDict[k]
@@ -151,7 +159,13 @@ class Histogram(object):
 				sys.stdout.write(s.graphColour)
 				sys.stdout.write(self.histogram_bar(s, histWidth, maxVal, outputDict[k]))
 
-				sys.stdout.write(s.regularColour)
+				if i == len(sortedOutput) - 1:
+			                # put the terminal back into a normal-colour mode on last entry
+					sys.stdout.write(s.regularColour)
+				else:
+					# we do these antics of printing $keyColour on the line before
+			                # the key so that piping output to sort will work
+				        sys.stdout.write(s.keyColour)
 				sys.stdout.write("\n")
 
 class InputReader(object):
