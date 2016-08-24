@@ -211,6 +211,7 @@ class InputReader(object):
 
 		pruneObjects = 0
 		for line in sys.stdin:
+			line = line.rstrip('\n')
 			if s.tokenize:
 				for token in pt.split(line):
 					# user desires to break line into tokens...
@@ -225,7 +226,6 @@ class InputReader(object):
 			else:
 				# user just wants every line to be a token
 				s.totalObjects += 1
-				line = line.rstrip()
 				if pm.match(line):
 					s.totalValues += 1
 					pruneObjects += 1
