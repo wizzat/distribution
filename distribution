@@ -37,9 +37,11 @@
 use warnings;
 use strict;
 
-# if your system is dying on this statement, it should be safe to simply comment
-# it out. your timings with --verbose will be very course.
-use Time::HiRes qw( time );
+# Time::HiRes will be used if found, to provide more precise timings
+# with --verbose.
+BEGIN {
+    eval { require Time::HiRes; Time::HiRes->import('time'); 1; };
+}
 
 # for determining how long this program ran
 my $startTime = time() * 1000;
