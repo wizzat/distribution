@@ -481,6 +481,9 @@ class Settings(object):
 			self.charWidth = 0.3334;
 			self.graphChars = self.partialLines
 
+		# detect whether the user has passed a multibyte unicode character directly as the histogram char
+		if ord(self.histogramChar[0]) >= 128:
+			self.unicodeMode = True
 
 def doUsage(s):
 	print("")
