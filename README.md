@@ -773,6 +773,23 @@ dt=2014-12-09|3065252 (2.37%) -------------------------------------------~
 dt=2014-12-10|3316703 (2.57%) -----------------------------------------------~
 ```
 
+Running Tests
+=============
+
+The `tests` directory contains sample input and output files, as well as a
+script to verify expected output based on the sample inputs. To use it, first
+export an environment variable called `distribution` that points to the
+location of your distribution executable. The script must be run from the `tests`
+directory. For example, the following will run tests against the Perl script
+and then against the Python script:
+
+    cd tests/
+	distribution=../distribution ./runTests.sh
+	distribution=../distribution.py ./runTests.sh
+
+The `runTests.sh` script takes one optional argument, `-v`. This enables
+verbose mode, which prints out any differences in the stderr of the test runs,
+for comparing diagnostic info.
 
 To-Do List
 ==========

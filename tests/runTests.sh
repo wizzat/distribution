@@ -6,6 +6,8 @@ if [ "xxx$distribution" == "xxx" ] ; then
 	exit 255
 fi
 
+getopts "v" verbose
+
 # the tests
 echo ""
 printf "Running test: 1. "
@@ -39,7 +41,14 @@ printf "Comparing results: "
 for i in 01 02 03 04 05 06 07 ; do
 	printf "$i. "
 	diff -w stdout.$i.expected.txt stdout.$i.actual.txt
-	diff -w -I "runtime:" -I "" stderr.$i.expected.txt stderr.$i.actual.txt
+
+	# when in verbose mode, ignore any "runtime lines, since those may differ by
+	# milliseconds from machine to machine. Also ignore any lines with "^M" markers,
+	# which are line-erase signals used for updating the screen interactively, and
+	# thus don't need to be stored or compared.
+	if [ "$verbose" = "v" ]; then
+		diff -w -I "runtime:" -I "" stderr.$i.expected.txt stderr.$i.actual.txt
+	fi
 done
 
 echo "done."
