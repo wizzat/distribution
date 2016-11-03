@@ -37,10 +37,14 @@ cat stdin.04.txt | awk '{print $8}' | $distribution --rcfile=../distributionrc -
 echo "done."
 
 # be sure output is proper
+err=0
 printf "Comparing results: "
 for i in 01 02 03 04 05 06 07 ; do
 	printf "$i. "
 	diff -w stdout.$i.expected.txt stdout.$i.actual.txt
+	if [ $? -ne 0 ]; then
+		err=1
+	fi
 
 	# when in verbose mode, ignore any "runtime lines, since those may differ by
 	# milliseconds from machine to machine. Also ignore any lines with "^M" markers,
@@ -55,3 +59,5 @@ echo "done."
 
 # clean up
 rm stdout.*.actual.txt stderr.*.actual.txt
+
+exit $err
