@@ -813,5 +813,6 @@ I imagine, in order of nice-to-haveness:
 Authors
 =======
 
+ * Tim Ellis
  * Philo Vivero
  * Taylor Stearns
