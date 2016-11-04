@@ -1,0 +1,5 @@
+tokens/lines examined: 5,480    
+ tokens/lines matched: 1,104
+       histogram keys: 144
+              runtime: 6.19ms
+         Key|Ct (Pct)     Histogram[32m
