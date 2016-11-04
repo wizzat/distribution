@@ -808,3 +808,10 @@ I imagine, in order of nice-to-haveness:
  * Ocaml
  * Java
  * Ruby
+
+
+Authors
+=======
+
+ * Philo Vivero
+ * Taylor Stearns
