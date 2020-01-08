@@ -253,7 +253,10 @@ class InputReader(object):
 			for line in sys.stdin:
 				m = vk.match(line)
 				try:
-					self.tokenDict[m.group(2)] = int(m.group(1))
+					if m.group(2) in self.tokenDict:
+						self.tokenDict[m.group(2)] += int(m.group(1))
+					else:
+						self.tokenDict[m.group(2)] = int(m.group(1))
 					s.totalValues += int(m.group(1))
 					s.totalObjects += 1
 				except:
@@ -262,7 +265,10 @@ class InputReader(object):
 			for line in sys.stdin:
 				m = kv.match(line)
 				try:
-					self.tokenDict[m.group(1)] = int(m.group(2))
+					if m.group(1) in self.tokenDict:
+						self.tokenDict[m.group(1)] += int(m.group(2))
+					else:
+						self.tokenDict[m.group(1)] = int(m.group(2))
 					s.totalValues += int(m.group(2))
 					s.totalObjects += 1
 				except:
