@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 # vim: set noexpandtab sw=4 ts=4:
 # --
 # A recent battle with vim and a Go program finally settled this for me.
@@ -30,7 +29,7 @@ import sys
 import time
 
 
-class Histogram(object):
+class Histogram:
     """
     Takes the tokenDict built in the InputReader class and goes through it,
     printing a histogram for each of the highest height entries
@@ -47,7 +46,7 @@ class Histogram(object):
         # first case is partial-width chars
         if s.charWidth < 1:
             zeroChar = s.graphChars[-1]
-        elif len(s.histogramChar) > 1 and s.unicodeMode == False:
+        elif len(s.histogramChar) > 1 and s.unicodeMode is False:
             zeroChar = s.histogramChar[0]
             oneChar = s.histogramChar[1]
         else:
@@ -116,19 +115,11 @@ class Histogram(object):
 
         s.endTime = int(time.time() * 1000)
         totalMillis = s.endTime - s.startTime
-        if s.verbose == True:
-            sys.stderr.write(
-                "tokens/lines examined: {:,d}".format(s.totalObjects) + "\n"
-            )
-            sys.stderr.write(
-                " tokens/lines matched: {:,d}".format(s.totalValues) + "\n"
-            )
-            sys.stderr.write(
-                "       histogram keys: {:,d}".format(len(tokenDict)) + "\n"
-            )
-            sys.stderr.write(
-                "              runtime: {:,.2f}ms".format(totalMillis) + "\n"
-            )
+        if s.verbose is True:
+            sys.stderr.write(f"tokens/lines examined: {s.totalObjects:,d}" + "\n")
+            sys.stderr.write(f" tokens/lines matched: {s.totalValues:,d}" + "\n")
+            sys.stderr.write(f"       histogram keys: {len(tokenDict):,d}" + "\n")
+            sys.stderr.write(f"              runtime: {totalMillis:,.2f}ms" + "\n")
 
         # the first entry will determine these values
         maxValueWidth = 0
@@ -197,7 +188,7 @@ class Histogram(object):
                 sys.stdout.write("\n")
 
 
-class InputReader(object):
+class InputReader:
     """
     Reads stdin, parses it into a dictionary of key and value is number
     of appearances of that key in the input - this will also prune the
@@ -299,7 +290,7 @@ class InputReader(object):
                         self.tokenDict[m.group(2)] = int(m.group(1))
                     s.totalValues += int(m.group(1))
                     s.totalObjects += 1
-                except:
+                except Exception:
                     sys.stderr.write(
                         " E Input malformed+discarded (perhaps pass -g=kv?): %s\n"
                         % line
@@ -314,7 +305,7 @@ class InputReader(object):
                         self.tokenDict[m.group(1)] = int(m.group(2))
                     s.totalValues += int(m.group(2))
                     s.totalObjects += 1
-                except:
+                except Exception:
                     sys.stderr.write(
                         " E Input malformed+discarded (perhaps pass -g=vk?): %s\n"
                         % line
@@ -333,7 +324,7 @@ class InputReader(object):
         for line in sys.stdin:
             try:
                 line = float(line.rstrip())
-            except:
+            except Exception:
                 line = lastVal
 
             graphVal = 0
@@ -368,7 +359,7 @@ class InputReader(object):
             sys.stdout.write(s.regularColour)
 
 
-class Settings(object):
+class Settings:
     def __init__(self):
         self.totalMillis = 0
         self.startTime = int(time.time() * 1000)
@@ -425,7 +416,7 @@ class Settings(object):
                 rcOpt = rcOpt.split("#")[0]
                 if rcOpt != "":
                     sys.argv.insert(0, rcOpt)
-        except:
+        except Exception:
             # don't die or in fact do anything if rcfile doesn't exist
             pass
 
@@ -480,7 +471,7 @@ class Settings(object):
             self.width = int(self.width)
             self.height = int(self.height) - 3
             # need room for the verbosity output
-            if self.verbose == True:
+            if self.verbose is True:
                 self.height -= 4
             # in case tput went all bad, ensure some minimum size
             if self.width < 40:
@@ -522,7 +513,7 @@ class Settings(object):
                 )
 
         # colour palette
-        if self.colourisedOutput == True:
+        if self.colourisedOutput is True:
             cl = self.colourPalette.split(",")
             # ANSI color code is ESC+[+NN+m where ESC=chr(27), [ and m are
             # the literal characters, and NN is a two-digit number, typically
@@ -616,8 +607,8 @@ def doUsage(s):
     print(
         "  --match=RE     only match lines (or tokens) that match this regexp, some substitutions follow:"
     )
-    print("        word     ^[A-Z,a-z]+\$ - tokens/lines must be entirely alphabetic")
-    print("        num      ^\\d+\$        - tokens/lines must be entirely numeric")
+    print("        word     ^[A-Z,a-z]+\\$ - tokens/lines must be entirely alphabetic")
+    print("        num      ^\\d+\\$        - tokens/lines must be entirely numeric")
     print("  --numonly[=N]  input is numerics, simply graph values without labels")
     print(
         "        actual   input is just values (default - abs, absolute are synonymous to actual)"
@@ -662,7 +653,7 @@ def doUsage(s):
     print("  du -sk /etc/* | awk '{print $2\" \"$1}' | %s --graph=kv" % (scriptName))
     print("  zcat /var/log/syslog*gz | %s --char=o --tokenize=white" % (scriptName))
     print(
-        "  zcat /var/log/syslog*gz | awk '{print \$5}'  | %s -t=word -m-word -h=15 -c=/"
+        "  zcat /var/log/syslog*gz | awk '{print \\$5}'  | %s -t=word -m-word -h=15 -c=/"
         % (scriptName)
     )
     print(
@@ -674,7 +665,7 @@ def doUsage(s):
         % (scriptName)
     )
     print(
-        "  cat /usr/share/dict/words | awk '{print length(\$1)}' | %s -c=* -w=50 -h=10 | sort -n"
+        "  cat /usr/share/dict/words | awk '{print length(\\$1)}' | %s -c=* -w=50 -h=10 | sort -n"
         % (scriptName)
     )
     print("")
