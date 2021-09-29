@@ -1,10 +1,4 @@
-#!/usr/bin/env python3
-# vim: set noexpandtab sw=4 ts=4:
-# --
-# A recent battle with vim and a Go program finally settled this for me.
-# Tabs for indent, spaces for formatting. If you change your shiftwidth and
-# tabstop to different values and your code looks ugly, say aloud: tabs
-# for indent, spaces for formatting.
+#! /usr/bin/env python3
 
 """
 Generate Graphs Directly in the (ASCII- or Unicode-based) Terminal
@@ -46,7 +40,7 @@ class Histogram:
         # first case is partial-width chars
         if s.charWidth < 1:
             zeroChar = s.graphChars[-1]
-        elif len(s.histogramChar) > 1 and s.unicodeMode is False:
+        elif len(s.histogramChar) > 1 and not s.unicodeMode:
             zeroChar = s.histogramChar[0]
             oneChar = s.histogramChar[1]
         else:
@@ -112,7 +106,7 @@ class Histogram:
 
         s.endTime = int(time.time() * 1000)
         totalMillis = s.endTime - s.startTime
-        if s.verbose is True:
+        if s.verbose:
             sys.stderr.write(f"tokens/lines examined: {s.totalObjects:,d}\n")
             sys.stderr.write(f" tokens/lines matched: {s.totalValues:,d}\n")
             sys.stderr.write(f"       histogram keys: {len(tokenDict):,d}\n")
@@ -654,7 +648,7 @@ def doUsage(s):
 
 
 # simple argument parsing and call top-level routines
-def main(argv):
+def main():
     # instantiate our classes
     s = Settings()
     i = InputReader()
@@ -678,4 +672,4 @@ def main(argv):
 # what is this magic?
 scriptName = sys.argv[0]
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
