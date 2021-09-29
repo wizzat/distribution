@@ -116,10 +116,10 @@ class Histogram:
         s.endTime = int(time.time() * 1000)
         totalMillis = s.endTime - s.startTime
         if s.verbose is True:
-            sys.stderr.write(f"tokens/lines examined: {s.totalObjects:,d}" + "\n")
-            sys.stderr.write(f" tokens/lines matched: {s.totalValues:,d}" + "\n")
-            sys.stderr.write(f"       histogram keys: {len(tokenDict):,d}" + "\n")
-            sys.stderr.write(f"              runtime: {totalMillis:,.2f}ms" + "\n")
+            sys.stderr.write(f"tokens/lines examined: {s.totalObjects:,d}\n")
+            sys.stderr.write(f" tokens/lines matched: {s.totalValues:,d}\n")
+            sys.stderr.write(f"       histogram keys: {len(tokenDict):,d}\n")
+            sys.stderr.write(f"              runtime: {totalMillis:,.2f}ms\n")
 
         # the first entry will determine these values
         maxValueWidth = 0
@@ -133,11 +133,9 @@ class Histogram:
             # off-by-one death the script sometimes suffers without it.
             if k:
                 if maxValueWidth == 0:
-                    testString = "%s" % outputDict[k]
+                    testString = f"{outputDict[k]}"
                     maxValueWidth = len(testString)
-                    testString = "(%2.2f%%)" % (
-                        outputDict[k] * 1.0 / s.totalValues * 100
-                    )
+                    testString = f"({outputDict[k] * 1.0 / s.totalValues * 100:2.2f}%)"
                     maxPctWidth = len(testString)
 
                     # we always output a single histogram char at the end, so
@@ -166,10 +164,10 @@ class Histogram:
                 sys.stdout.write("|")
                 sys.stdout.write(s.ctColour)
 
-                outVal = "%s" % outputDict[k]
+                outVal = f"{outputDict[k]}"
                 sys.stdout.write(outVal.rjust(maxValueWidth) + " ")
 
-                pct = "(%2.2f%%)" % (outputDict[k] * 1.0 / s.totalValues * 100)
+                pct = f"({outputDict[k] * 1.0 / s.totalValues * 100:2.2f}%)"
                 sys.stdout.write(s.pctColour)
                 sys.stdout.write(pct.rjust(maxPctWidth) + " ")
 
@@ -267,9 +265,7 @@ class InputReader:
 
             if s.verbose and time.time() > nextStat:
                 sys.stderr.write(
-                    "tokens/lines examined: {:,d} ; hash prunes: {:,d}...".format(
-                        s.totalObjects, s.numPrunes
-                    )
+                    f"tokens/lines examined: {s.totalObjects:,d} ; hash prunes: {s.numPrunes:,d}..."
                     + chr(13)
                 )
                 nextStat = time.time() + s.statInterval
@@ -292,8 +288,7 @@ class InputReader:
                     s.totalObjects += 1
                 except Exception:
                     sys.stderr.write(
-                        " E Input malformed+discarded (perhaps pass -g=kv?): %s\n"
-                        % line
+                        f" E Input malformed+discarded (perhaps pass -g=kv?): {line}\n"
                     )
         elif s.graphValues == "kv":
             for line in sys.stdin:
@@ -307,8 +302,7 @@ class InputReader:
                     s.totalObjects += 1
                 except Exception:
                     sys.stderr.write(
-                        " E Input malformed+discarded (perhaps pass -g=vk?): %s\n"
-                        % line
+                        f" E Input malformed+discarded (perhaps pass -g=vk?): {line}\n"
                     )
 
     def read_numerics(self, s, h):
@@ -349,7 +343,7 @@ class InputReader:
         for k in outList:
             sys.stdout.write(s.keyColour)
             sys.stdout.write(str(int(k)).rjust(maxWidth))
-            pct = "(%2.2f%%)" % (float(k) / float(sumVal) * 100)
+            pct = f"({float(k) / float(sumVal) * 100:2.2f}%)"
             sys.stdout.write(s.pctColour)
             sys.stdout.write(pct.rjust(9) + " ")
             sys.stdout.write(s.graphColour)
@@ -508,9 +502,7 @@ class Settings:
         if self.maxKeys < self.height + 3000:
             self.maxKeys = self.height + 3000
             if self.verbose:
-                sys.stderr.write(
-                    "Updated maxKeys to %d (height + 3000)\n" % self.maxKeys
-                )
+                sys.stderr.write(f"Updated maxKeys to {self.maxKeys} (height + 3000)\n")
 
         # colour palette
         if self.colourisedOutput is True:
@@ -565,7 +557,7 @@ class Settings:
 
 def doUsage(s):
     print("")
-    print("usage: <commandWithOutput> | %s" % (scriptName))
+    print(f"usage: <commandWithOutput> | {scriptName}")
     print("         [--rcfile=<rcFile>]")
     print("         [--size={sm|med|lg|full} | --width=<width> --height=<height>]")
     print("         [--color] [--palette=r,k,c,p,g]")
@@ -576,8 +568,7 @@ def doUsage(s):
     print("         [--char=<barChars>|<substitutionString>]")
     print("         [--help] [--verbose]")
     print(
-        "  --keys=K       every %d values added, prune hash to K keys (default 5000)"
-        % (s.keyPruneInterval)
+        f"  --keys=K       every {s.keyPruneInterval} values added, prune hash to K keys (default 5000)"
     )
     print(
         "  --char=C       character(s) to use for histogram character, some substitutions follow:"
@@ -649,24 +640,22 @@ def doUsage(s):
     )
     print("")
     print("Samples:")
-    print("  du -sb /etc/* | %s --palette=0,37,34,33,32 --graph" % (scriptName))
-    print("  du -sk /etc/* | awk '{print $2\" \"$1}' | %s --graph=kv" % (scriptName))
-    print("  zcat /var/log/syslog*gz | %s --char=o --tokenize=white" % (scriptName))
+    print(f"  du -sb /etc/* | {scriptName} --palette=0,37,34,33,32 --graph")
+    print("  du -sk /etc/* | awk '{print $2\" \"$1}' | " + f"{scriptName} --graph=kv")
+    print(f"  zcat /var/log/syslog*gz | {scriptName} --char=o --tokenize=white")
     print(
-        "  zcat /var/log/syslog*gz | awk '{print \\$5}'  | %s -t=word -m-word -h=15 -c=/"
-        % (scriptName)
+        "  zcat /var/log/syslog*gz | awk '{print \\$5}'  | "
+        f"{scriptName} -t=word -m-word -h=15 -c=/"
     )
     print(
-        "  zcat /var/log/syslog*gz | cut -c 1-9        | %s -width=60 -height=10 -char=em"
-        % (scriptName)
+        f"  zcat /var/log/syslog*gz | cut -c 1-9        | {scriptName} -width=60 -height=10 -char=em"
     )
     print(
-        "  find /etc -type f       | cut -c 6-         | %s -tokenize=/ -w=90 -h=35 -c=dt"
-        % (scriptName)
+        f"  find /etc -type f       | cut -c 6-         | {scriptName} -tokenize=/ -w=90 -h=35 -c=dt"
     )
     print(
-        "  cat /usr/share/dict/words | awk '{print length(\\$1)}' | %s -c=* -w=50 -h=10 | sort -n"
-        % (scriptName)
+        "  cat /usr/share/dict/words | awk '{print length(\\$1)}' | "
+        f"{scriptName} -c=* -w=50 -h=10 | sort -n"
     )
     print("")
 
