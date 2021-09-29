@@ -56,10 +56,7 @@ class Histogram:
         # write out the full-width integer portion of the histogram
         if s.logarithmic:
             maxLog = math.log(maxVal)
-            if barVal > 0:
-                barLog = math.log(barVal)
-            else:
-                barLog = 0
+            barLog = math.log(barVal) if barVal > 0 else 0
             intWidth = int(barLog / maxLog * histWidth)
             remainderWidth = (barLog / maxLog * histWidth) - intWidth
         else:
@@ -221,9 +218,7 @@ class InputReader:
         # all-alpha or all-numeric, but again, user can specify
         if s.matchRegexp == "word":
             s.matchRegexp = r"^[A-Z,a-z]+$"
-        elif s.matchRegexp == "num":
-            s.matchRegexp = r"^\d+$"
-        elif s.matchRegexp == "number":
+        elif s.matchRegexp in ["num", "number"]:
             s.matchRegexp = r"^\d+$"
 
         # docs say these are cached, but i got about 2x speed boost
@@ -465,13 +460,11 @@ class Settings:
             self.width = int(self.width)
             self.height = int(self.height) - 3
             # need room for the verbosity output
-            if self.verbose is True:
+            if self.verbose:
                 self.height -= 4
             # in case tput went all bad, ensure some minimum size
-            if self.width < 40:
-                self.width = 40
-            if self.height < 10:
-                self.height = 10
+            self.width = max(self.width, 40)
+            self.height = max(self.height, 10)
         elif self.size in ("small", "sm", "s"):
             self.width = 60
             self.height = 10
@@ -505,7 +498,7 @@ class Settings:
                 sys.stderr.write(f"Updated maxKeys to {self.maxKeys} (height + 3000)\n")
 
         # colour palette
-        if self.colourisedOutput is True:
+        if self.colourisedOutput:
             cl = self.colourPalette.split(",")
             # ANSI color code is ESC+[+NN+m where ESC=chr(27), [ and m are
             # the literal characters, and NN is a two-digit number, typically
