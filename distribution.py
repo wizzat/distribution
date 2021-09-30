@@ -543,108 +543,64 @@ class Settings:
 
 
 def doUsage(s):
-    print("")
-    print(f"usage: <commandWithOutput> | {scriptName}")
-    print("         [--rcfile=<rcFile>]")
-    print("         [--size={sm|med|lg|full} | --width=<width> --height=<height>]")
-    print("         [--color] [--palette=r,k,c,p,g]")
-    print("         [--tokenize=<tokenChar>]")
-    print(
-        "         [--graph[=[kv|vk]] [--numonly[=derivative,diff|abs,absolute,actual]]"
-    )
-    print("         [--char=<barChars>|<substitutionString>]")
-    print("         [--help] [--verbose]")
-    print(
-        f"  --keys=K       every {s.keyPruneInterval} values added, prune hash to K keys (default 5000)"
-    )
-    print(
-        "  --char=C       character(s) to use for histogram character, some substitutions follow:"
-    )
-    print(
-        "        pl       Use 1/3-width unicode partial lines to simulate 3x actual terminal width"
-    )
-    print(
-        "        pb       Use 1/8-width unicode partial blocks to simulate 8x actual terminal width"
-    )
-    print("        ba       (▬) Bar")
-    print("        bl       (Ξ) Building")
-    print("        em       (—) Emdash")
-    print("        me       (⋯) Mid-Elipses")
-    print("        di       (♦) Diamond")
-    print("        dt       (•) Dot")
-    print("        sq       (□) Square")
-    print("  --color        colourise the output")
-    print("  --graph[=G]    input is already key/value pairs. vk is default:")
-    print("        kv       input is ordered key then value")
-    print("        vk       input is ordered value then key")
-    print(
-        "  --height=N     height of histogram, headers non-inclusive, overrides --size"
-    )
-    print("  --help         get help")
-    print("  --logarithmic  logarithmic graph")
-    print(
-        "  --match=RE     only match lines (or tokens) that match this regexp, some substitutions follow:"
-    )
-    print("        word     ^[A-Z,a-z]+\\$ - tokens/lines must be entirely alphabetic")
-    print("        num      ^\\d+\\$        - tokens/lines must be entirely numeric")
-    print("  --numonly[=N]  input is numerics, simply graph values without labels")
-    print(
-        "        actual   input is just values (default - abs, absolute are synonymous to actual)"
-    )
-    print(
-        "        diff     input monotonically-increasing, graph differences (of 2nd and later values)"
-    )
-    print(
-        "  --palette=P    comma-separated list of ANSI colour values for portions of the output"
-    )
-    print(
-        "                 in this order: regular, key, count, percent, graph. implies --color."
-    )
-    print(
-        "  --rcfile=F     use this rcfile instead of ~/.distributionrc - must be first argument!"
-    )
-    print(
-        "  --size=S       size of histogram, can abbreviate to single character, overridden by --width/--height"
-    )
-    print("        small    40x10")
-    print("        medium   80x20")
-    print("        large    120x30")
-    print("        full     terminal width x terminal height (approximately)")
-    print(
-        "  --tokenize=RE  split input on regexp RE and make histogram of all resulting tokens"
-    )
-    print(
-        "        word     [^\\w] - split on non-word characters like colons, brackets, commas, etc"
-    )
-    print("        white    \\s    - split on whitespace")
-    print(
-        "  --width=N      width of the histogram report, N characters, overrides --size"
-    )
-    print("  --verbose      be verbose")
-    print("")
-    print(
-        "You can use single-characters options, like so: -h=25 -w=20 -v. You must still include the ="
-    )
-    print("")
-    print("Samples:")
-    print(f"  du -sb /etc/* | {scriptName} --palette=0,37,34,33,32 --graph")
-    print("  du -sk /etc/* | awk '{print $2\" \"$1}' | " + f"{scriptName} --graph=kv")
-    print(f"  zcat /var/log/syslog*gz | {scriptName} --char=o --tokenize=white")
-    print(
-        "  zcat /var/log/syslog*gz | awk '{print \\$5}'  | "
-        f"{scriptName} -t=word -m-word -h=15 -c=/"
-    )
-    print(
-        f"  zcat /var/log/syslog*gz | cut -c 1-9        | {scriptName} -width=60 -height=10 -char=em"
-    )
-    print(
-        f"  find /etc -type f       | cut -c 6-         | {scriptName} -tokenize=/ -w=90 -h=35 -c=dt"
-    )
-    print(
-        "  cat /usr/share/dict/words | awk '{print length(\\$1)}' | "
-        f"{scriptName} -c=* -w=50 -h=10 | sort -n"
-    )
-    print("")
+    print(f"""
+usage: <commandWithOutput> | {scriptName}
+         [--rcfile=<rcFile>]
+         [--size={{sm|med|lg|full}} | --width=<width> --height=<height>]
+         [--color] [--palette=r,k,c,p,g]
+         [--tokenize=<tokenChar>]
+         [--graph[=[kv|vk]] [--numonly[=derivative,diff|abs,absolute,actual]]
+         [--char=<barChars>|<substitutionString>]
+         [--help] [--verbose]
+  --keys=K       every {s.keyPruneInterval} values added, prune hash to K keys (default 5000)
+  --char=C       character(s) to use for histogram character, some substitutions follow:
+        pl       Use 1/3-width unicode partial lines to simulate 3x actual terminal width
+        pb       Use 1/8-width unicode partial blocks to simulate 8x actual terminal width
+        ba       (▬) Bar
+        bl       (Ξ) Building
+        em       (—) Emdash
+        me       (⋯) Mid-Elipses
+        di       (♦) Diamond
+        dt       (•) Dot
+        sq       (□) Square
+  --color        colourise the output
+  --graph[=G]    input is already key/value pairs. vk is default:
+        kv       input is ordered key then value
+        vk       input is ordered value then key
+  --height=N     height of histogram, headers non-inclusive, overrides --size
+  --help         get help
+  --logarithmic  logarithmic graph
+  --match=RE     only match lines (or tokens) that match this regexp, some substitutions follow:
+        word     ^[A-Z,a-z]+\\$ - tokens/lines must be entirely alphabetic
+        num      ^\\d+\\$        - tokens/lines must be entirely numeric
+  --numonly[=N]  input is numerics, simply graph values without labels
+        actual   input is just values (default - abs, absolute are synonymous to actual)
+        diff     input monotonically-increasing, graph differences (of 2nd and later values)
+  --palette=P    comma-separated list of ANSI colour values for portions of the output
+                 in this order: regular, key, count, percent, graph. implies --color.
+  --rcfile=F     use this rcfile instead of ~/.distributionrc - must be first argument!
+  --size=S       size of histogram, can abbreviate to single character, overridden by --width/--height
+        small    40x10
+        medium   80x20
+        large    120x30
+        full     terminal width x terminal height (approximately)
+  --tokenize=RE  split input on regexp RE and make histogram of all resulting tokens
+        word     [^\\w] - split on non-word characters like colons, brackets, commas, etc
+        white    \\s    - split on whitespace
+  --width=N      width of the histogram report, N characters, overrides --size
+  --verbose      be verbose
+
+You can use single-characters options, like so: -h=25 -w=20 -v. You must still include the =
+
+Samples:
+  du -sb /etc/* | {scriptName} --palette=0,37,34,33,32 --graph
+  du -sk /etc/* | awk '{{print $2\" \"$1}}' | {scriptName} --graph=kv
+  zcat /var/log/syslog*gz | {scriptName} --char=o --tokenize=white
+  zcat /var/log/syslog*gz | awk '{{print $5}}'  | {scriptName} -t=word -m-word -h=15 -c=/
+  zcat /var/log/syslog*gz | cut -c 1-9        | {scriptName} -width=60 -height=10 -char=em
+  find /etc -type f       | cut -c 6-         | {scriptName} -tokenize=/ -w=90 -h=35 -c=dt
+  cat /usr/share/dict/words | awk '{{print length($1)}}' | {scriptName} -c=* -w=50 -h=10 | sort -n
+""")
 
 
 # simple argument parsing and call top-level routines
