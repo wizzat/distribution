@@ -21,6 +21,7 @@ import os
 import re
 import sys
 import time
+from pathlib import Path
 
 
 class Histogram:
@@ -543,7 +544,8 @@ class Settings:
 
 
 def doUsage(s):
-    print(f"""
+    print(
+        f"""
 usage: <commandWithOutput> | {scriptName}
          [--rcfile=<rcFile>]
          [--size={{sm|med|lg|full}} | --width=<width> --height=<height>]
@@ -600,7 +602,8 @@ Samples:
   zcat /var/log/syslog*gz | cut -c 1-9        | {scriptName} -width=60 -height=10 -char=em
   find /etc -type f       | cut -c 6-         | {scriptName} -tokenize=/ -w=90 -h=35 -c=dt
   cat /usr/share/dict/words | awk '{{print length($1)}}' | {scriptName} -c=* -w=50 -h=10 | sort -n
-""")
+"""
+    )
 
 
 # simple argument parsing and call top-level routines
@@ -626,6 +629,6 @@ def main():
 
 
 # what is this magic?
-scriptName = sys.argv[0]
+scriptName = str(Path(sys.argv[0]).name)
 if __name__ == "__main__":
     main()
