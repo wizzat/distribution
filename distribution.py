@@ -394,13 +394,13 @@ class Settings:
 
         # parse opts from the rcFile if it exists
         try:
-            rcfileOptList = open(rcFile).readlines()
-            for rcOpt in rcfileOptList:
-                rcOpt = rcOpt.rstrip()
-                rcOpt = rcOpt.split("#")[0]
-                if rcOpt != "":
-                    sys.argv.insert(0, rcOpt)
-        except Exception:
+            with open(rcFile) as f:
+                rcfileOptList = f.readlines()
+                for rcOpt in rcfileOptList:
+                    rcOpt = rcOpt.rstrip().split("#")[0]
+                    if rcOpt:
+                        sys.argv.insert(0, rcOpt)
+        except OSError:
             # don't die or in fact do anything if rcfile doesn't exist
             pass
 
