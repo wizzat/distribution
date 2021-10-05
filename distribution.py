@@ -19,6 +19,7 @@ use cases as well.
 import math
 import os
 import re
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -448,9 +449,7 @@ class Settings:
         # first, size, which might be further overridden by width/height later
         if self.size in ("full", "fl", "f"):
             # tput will tell us the term width/height even if input is stdin
-            self.width, self.height = (
-                os.popen('echo "`tput cols` `tput lines`"', "r").read().split()
-            )
+            self.width, self.height = shutil.get_terminal_size()
             # convert to numerics from string
             self.width = int(self.width)
             self.height = int(self.height) - 3
