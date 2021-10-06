@@ -19,6 +19,7 @@ use cases as well.
 import math
 import os
 import re
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -394,13 +395,13 @@ class Settings:
 
         # parse opts from the rcFile if it exists
         try:
-            rcfileOptList = open(rcFile).readlines()
-            for rcOpt in rcfileOptList:
-                rcOpt = rcOpt.rstrip()
-                rcOpt = rcOpt.split("#")[0]
-                if rcOpt != "":
-                    sys.argv.insert(0, rcOpt)
-        except Exception:
+            with open(rcFile) as f:
+                rcfileOptList = f.readlines()
+                for rcOpt in rcfileOptList:
+                    rcOpt = rcOpt.rstrip().split("#")[0]
+                    if rcOpt:
+                        sys.argv.insert(0, rcOpt)
+        except OSError:
             # don't die or in fact do anything if rcfile doesn't exist
             pass
 
@@ -448,9 +449,7 @@ class Settings:
         # first, size, which might be further overridden by width/height later
         if self.size in ("full", "fl", "f"):
             # tput will tell us the term width/height even if input is stdin
-            self.width, self.height = (
-                os.popen('echo "`tput cols` `tput lines`"', "r").read().split()
-            )
+            self.width, self.height = shutil.get_terminal_size()
             # convert to numerics from string
             self.width = int(self.width)
             self.height = int(self.height) - 3
